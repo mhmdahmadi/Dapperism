@@ -1,0 +1,39 @@
+namespace Dapperism.Enums
+{
+    public enum FilterOperation
+    {
+        Equal,
+        NotEqual,
+        GreaterThan,
+        GreaterThanEqual,
+        LessThan,
+        LessThanEqual,
+        Like,
+        MultipleLike,
+        MultipleTotalLike,
+        MultipleStartLike,
+        MultipleEndLike,
+        NotLike,
+        NotMultipleLike,
+        NotMultipleTotalLike,
+        NotMultipleStartLike,
+        NotMultipleEndLike,
+        StartsWith,
+        DoesNotStartWith,
+        EndsWith,
+        DoesNotEndWith,
+        IsNull,
+        IsNotNull,
+        In,
+        EqualDateTime,
+        GreaterThanDateTime,
+        LessThanDateTime,
+        GreaterThanEqualDateTime,
+        LessThanEqualDateTime,
+        EqualPersianDateTime,
+        GreaterThanPersianDateTime,
+        LessThanPersianDateTime,
+        GreaterThanEqualPersianDateTime,
+        LessThanEqualPersianDateTime
+    }
+}
