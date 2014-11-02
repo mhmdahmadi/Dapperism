@@ -5,7 +5,7 @@ VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dapperism", "Dapperism\Dapperism.csproj", "{60A3AAE2-8801-4C79-B034-C5702F88CD1F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dapperism.Test", "Dapperism.Test\Dapperism.Test.csproj", "{3DCC651A-E5E7-418D-912D-5BEA83E48FD9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dapperism.Console", "Dapperism.Test\Dapperism.Console.csproj", "{3DCC651A-E5E7-418D-912D-5BEA83E48FD9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
