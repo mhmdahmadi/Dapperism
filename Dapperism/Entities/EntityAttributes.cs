@@ -16,6 +16,7 @@ namespace Dapperism.Entities
         internal string DeleteSpName { get; set; }
         internal string SelectByIdSpName { get; set; }
         internal string SelectAllSpName { get; set; }
+        internal bool RetrieveOnly { get; set; }
         internal Dictionary<string, EntityInfo> NotSeparatedInfo { get; set; }
         internal IList<PropertyInfo> NotSeparated { get; set; }
         internal string[] PropertyNames { get; set; }

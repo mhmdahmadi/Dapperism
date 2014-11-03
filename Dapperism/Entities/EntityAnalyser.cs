@@ -49,6 +49,10 @@ namespace Dapperism.Entities
             var sByIdAttribute = allAttr.FirstOrDefault(x => x is SelectByIdSpNameAttribute) as SelectByIdSpNameAttribute;
             var sByIdName = sByIdAttribute == null ? null : sByIdAttribute.Name.Trim();
 
+
+            var rOnlyAttribute = allAttr.FirstOrDefault(x => x is RetrieveOnlyAttribute) as RetrieveOnlyAttribute;
+            var rOnly = sByIdAttribute != null;
+
             var props = type.Properties(Flags.Instance | Flags.DeclaredOnly | Flags.Public);
             var notSeparated = props.Where(x => x.Attribute<SeparatedAttribute>() == null).ToList();
             var propNames = notSeparated.Select(x => x.Name).ToArray();
@@ -128,7 +132,8 @@ namespace Dapperism.Entities
                 PropertyNames = propNames,
                 CascadeMode = cMode,
                 SelectAllSpName = sAllName,
-                SelectByIdSpName = sByIdName
+                SelectByIdSpName = sByIdName,
+                RetrieveOnly = rOnly
             };
 
 

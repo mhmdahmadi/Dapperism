@@ -59,6 +59,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Attributes\RetrieveOnlyAttribute.cs" />
     <Compile Include="Attributes\SelectByIdSpNameAttribute.cs" />
     <Compile Include="Attributes\SelectAllSpNameAttribute.cs" />
     <Compile Include="Attributes\ValidationModeAttribute.cs" />

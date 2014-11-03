@@ -113,6 +113,10 @@ namespace Dapperism.DataAccess
         public TEntity Insert(TEntity entity, IDbTransaction transaction = null)
         {
             if (entity == null) return null;
+
+            if (_entityAttributes.RetrieveOnly)
+                return null;
+            
             ValidationResults = null;
             if (!entity.IsValid())
             {
@@ -165,6 +169,8 @@ namespace Dapperism.DataAccess
         public void Insert(IList<TEntity> entities, IDbTransaction transaction = null)
         {
             if (entities == null) return;
+            if (_entityAttributes.RetrieveOnly)
+                return;
             ValidationResults = null;
             var c = entities.Count();
             var cmd = new string[c];
@@ -217,6 +223,8 @@ namespace Dapperism.DataAccess
         public TEntity InsertBySp(TEntity entity, IDbTransaction transaction = null)
         {
             if (entity == null) return null;
+            if (_entityAttributes.RetrieveOnly)
+                return null;
             ValidationResults = null;
             if (!entity.IsValid())
             {
@@ -260,6 +268,8 @@ namespace Dapperism.DataAccess
         public void InsertBySp(IList<TEntity> entities, IDbTransaction transaction = null)
         {
             if (entities == null) return;
+            if (_entityAttributes.RetrieveOnly)
+                return ;
             ValidationResults = null;
             using (DbConnection)
             {
@@ -299,6 +309,8 @@ namespace Dapperism.DataAccess
         public void Update(TEntity entity, IDbTransaction transaction = null)
         {
             if (entity == null) return;
+            if (_entityAttributes.RetrieveOnly)
+                return ;
             ValidationResults = null;
             if (!entity.IsValid())
             {
@@ -344,6 +356,8 @@ namespace Dapperism.DataAccess
         public void Update(IList<TEntity> entities, IDbTransaction transaction = null)
         {
             if (entities == null) return;
+            if (_entityAttributes.RetrieveOnly)
+                return ;
             ValidationResults = null;
             var c = entities.Count();
             var cmd = new string[c];
@@ -405,6 +419,8 @@ namespace Dapperism.DataAccess
         public void UpdateBySp(TEntity entity, IDbTransaction transaction = null)
         {
             if (entity == null) return;
+            if (_entityAttributes.RetrieveOnly)
+                return;
             ValidationResults = null;
             if (!entity.IsValid())
             {
@@ -436,6 +452,8 @@ namespace Dapperism.DataAccess
         public void UpdateBySp(IList<TEntity> entities, IDbTransaction transaction = null)
         {
             if (entities == null) return;
+            if (_entityAttributes.RetrieveOnly)
+                return;
             ValidationResults = null;
             using (DbConnection)
             {
@@ -476,7 +494,8 @@ namespace Dapperism.DataAccess
         public void Delete(TEntity entity, IDbTransaction transaction = null)
         {
             if (entity == null) return;
-
+            if (_entityAttributes.RetrieveOnly)
+                return;
             using (DbConnection)
             {
                 var trans = transaction ?? BeginTransaction();
@@ -501,6 +520,8 @@ namespace Dapperism.DataAccess
         public void Delete(IList<TEntity> entities, IDbTransaction transaction = null)
         {
             if (entities == null) return;
+            if (_entityAttributes.RetrieveOnly)
+                return ;
             ValidationResults = null;
             var c = entities.Count();
             var cmd = new string[c];
@@ -535,6 +556,8 @@ namespace Dapperism.DataAccess
         public void DeleteBySp(TEntity entity, IDbTransaction transaction = null)
         {
             if (entity == null) return;
+            if (_entityAttributes.RetrieveOnly)
+                return;
             using (DbConnection)
             {
                 var trans = transaction ?? BeginTransaction();
@@ -557,6 +580,8 @@ namespace Dapperism.DataAccess
         public void DeleteBySp(IList<TEntity> entities, IDbTransaction transaction = null)
         {
             if (entities == null) return;
+            if (_entityAttributes.RetrieveOnly)
+                return ;
             using (DbConnection)
             {
                 var trans = transaction ?? BeginTransaction();
@@ -582,6 +607,8 @@ namespace Dapperism.DataAccess
         public void DeleteBySp(IDbTransaction transaction = null, params  object[] id)
         {
             if (id == null) return;
+            if (_entityAttributes.RetrieveOnly)
+                return ;
             using (DbConnection)
             {
                 var trans = transaction ?? BeginTransaction();
@@ -610,6 +637,8 @@ namespace Dapperism.DataAccess
         public void Delete(IDbTransaction transaction = null, params  object[] id)
         {
             if (id == null) return;
+            if (_entityAttributes.RetrieveOnly)
+                return ;
             using (DbConnection)
             {
                 var trans = transaction ?? BeginTransaction();
@@ -875,6 +904,8 @@ namespace Dapperism.DataAccess
                 }
             }
         }
+
+
 
     }
 }
