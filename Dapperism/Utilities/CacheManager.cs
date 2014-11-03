@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Dapperism.Utilities
 {
-    internal sealed class CacheManager
+    [Serializable]
+    public sealed class CacheManager
     {
         private static readonly Dictionary<string, object> Cache = new Dictionary<string, object>();
         private static CacheManager _instance;
@@ -15,7 +18,19 @@ namespace Dapperism.Utilities
 
         }
 
-        internal static CacheManager Instance
+        public int Size
+        {
+            get
+            {
+                var bf = new BinaryFormatter();
+                var ms = new MemoryStream();
+                bf.Serialize(ms, this);
+                var array = ms.ToArray();
+                return array.Length;
+            }
+        }
+
+        public static CacheManager Instance
         {
             get
             {

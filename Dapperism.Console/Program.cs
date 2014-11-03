@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Dapperism.DataAccess;
+using Dapperism.Utilities;
 
 namespace Dapperism.Console
 {
@@ -43,12 +44,59 @@ namespace Dapperism.Console
             var lst6 = rep.GetAll();
             st6.Stop();
 
+            
+            var st7 = new Stopwatch();
+            st7.Start();
+            var lst7 = rep.InsertOrUpdate(new Order()
+                {
+                    OrderId = 11080,
+                    CustomerId = "BONAP",
+                    EmployeeId = 8,
+                    ShippedDate = DateTime.Now,
+                    Freight = 12,
+                    OrderDate = DateTime.Now,
+                    RequiredDate = DateTime.Now,
+                    ShipAddress = "zzz",
+                    ShipCity = "zzzz",
+                    ShipCountry = "zzzz",
+                    ShipName = "zzzzz",
+                    ShipPostalCode = "2222",
+                    ShipRegion = "zzzzz",
+                    ShipVia = 2
+                });
+            st7.Stop();
+
+            var st8 = new Stopwatch();
+            st8.Start();
+            var lst8 = rep.InsertOrUpdate(new Order()
+            {
+                OrderId = 11081,
+                CustomerId = "BONAP",
+                EmployeeId = 8,
+                ShippedDate = DateTime.Now,
+                Freight = 12,
+                OrderDate = DateTime.Now,
+                RequiredDate = DateTime.Now,
+                ShipAddress = "ooooo",
+                ShipCity = "ooooo",
+                ShipCountry = "ooooo",
+                ShipName = "ooooo",
+                ShipPostalCode = "00000",
+                ShipRegion = "oooooo",
+                ShipVia = 2
+            });
+            st8.Stop();
+
             var t1 = st1.ElapsedMilliseconds;
             var t2 = st2.ElapsedMilliseconds;
             var t3 = st3.ElapsedMilliseconds;
             var t4 = st4.ElapsedMilliseconds;
             var t5 = st5.ElapsedMilliseconds;
             var t6 = st6.ElapsedMilliseconds;
+            var t7 = st7.ElapsedMilliseconds;
+            var t8 = st8.ElapsedMilliseconds;
+
+            var s = CacheManager.Instance.Size;
         }
     }
 }

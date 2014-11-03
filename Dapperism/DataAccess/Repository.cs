@@ -921,5 +921,93 @@ namespace Dapperism.DataAccess
                 }
             }
         }
+
+
+        public TEntity InsertOrUpdate(TEntity entity, IDbTransaction transaction = null)
+        {
+            if (entity == null) return null;
+
+            if (_entityAttributes.RetrieveOnly)
+                return null;
+
+            ValidationResults = null;
+            if (!entity.IsValid())
+            {
+                ValidationResults = entity.Validate();
+                return null;
+            }
+
+            using (DbConnection)
+            {
+                var trans = transaction ?? BeginTransaction();
+                using (trans)
+                {
+
+                    var data = EntityAnalyser<TEntity>.GetData(entity);
+                    var ids =
+                        data.Where(
+                            x =>
+                                (x.AutoNumber == (int)AutoNumber.Yes || x.AutoNumber == (int)AutoNumber.No) &&
+                                !x.IsViewColumn);
+                    var fieldsUpdate = data.Where(x => x.AutoNumber == -1 && !x.IsViewColumn);
+
+                    var setStr =
+                        fieldsUpdate.Aggregate("",
+                            (current, dtoMap) => current + ("[" + dtoMap.ColumnName + "] = " + dtoMap.FormattedValue))
+                            .Replace("'[", "' , [");
+
+                    var whereStr =
+                        ids.Aggregate("",
+                            (current, dtoMap) =>
+                                current + ("[" + dtoMap.ColumnName + "] = " + dtoMap.FormattedValue + " "))
+                            .Replace("'[", "' AND [");
+
+                    var cmdTextUpdate = string.Format("UPDATE {0}.{1} SET {2} WHERE {3}", _entityAttributes.SchemaName,
+                        _entityAttributes.TableName, setStr, whereStr.Trim());
+
+
+                    var fieldsInsert =
+                        data.Where(x => x.AutoNumber != (int)AutoNumber.Yes && !x.IsViewColumn)
+                            .Select(x => x.ColumnName)
+                            .Aggregate((a, b) => a + "," + b);
+
+                    var valuesInsert =
+                        data.Where(x => x.AutoNumber != (int)AutoNumber.Yes && !x.IsViewColumn)
+                            .Select(x => x.FormattedValue)
+                            .Aggregate((a, b) => a + "," + b);
+
+                    var colName = data.FirstOrDefault(x => x.AutoNumber == (int)AutoNumber.Yes && !x.IsViewColumn);
+                    var txt1Insert = string.Format("INSERT INTO {0}.{1} ({2}) VALUES ({3})", _entityAttributes.SchemaName,
+                        _entityAttributes.TableName, fieldsInsert, valuesInsert);
+                    TEntity result;
+
+                    if (colName != null)
+                    {
+                        var txt2 = string.Format("SELECT * FROM {0}.{1} WHERE {2} = SCOPE_IDENTITY() ",
+                            _entityAttributes.SchemaName, _entityAttributes.TableName, colName.ColumnName);
+                        var cmdTextInsert = (txt1Insert + " " + txt2).Trim();
+
+                        var cmdText = string.Format("IF EXISTS (SELECT * FROM {0}.{1} WHERE {2}) BEGIN {3} SELECT * FROM {0}.{1} WHERE {2} END ELSE BEGIN {4} END", _entityAttributes.SchemaName, _entityAttributes.TableName, whereStr,
+                             cmdTextUpdate, cmdTextInsert);
+
+                        result =
+                            DbConnection.Query<TEntity>(cmdText, transaction: trans, commandType: CommandType.Text)
+                                .FirstOrDefault();
+                    }
+                    else
+                    {
+                        var cmdText = string.Format("IF EXISTS (SELECT * FROM {0}.{1} WHERE {2}) {3} ELSE {4}", _entityAttributes.SchemaName, _entityAttributes.TableName, whereStr,
+                  cmdTextUpdate, txt1Insert);
+
+                        var r = DbConnection.Execute(cmdText, transaction: trans, commandType: CommandType.Text);
+                        result = r >= 0 ? entity : null;
+                    }
+                    if (transaction == null)
+                        CommitTransaction(trans);
+                    return result;
+                }
+
+            }
+        }
     }
 }
