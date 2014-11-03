@@ -7,6 +7,7 @@ using Dapperism.Utilities;
 namespace Dapperism.Console
 {
     [TableName("Orders")]
+    [RetrieveOnly]
     public class Order : Entity<Order>
     {
         [PrimaryKey(AutoNumber.Yes)]
@@ -29,7 +30,6 @@ namespace Dapperism.Console
         public PersianDateTime PersianOrderDate
         {
             get { return OrderDate; }
-
         }
         [Separated]
         public PersianDateTime PersianRequiredDate

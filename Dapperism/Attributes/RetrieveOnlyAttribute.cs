@@ -2,7 +2,7 @@
 
 namespace Dapperism.Attributes
 {
-    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
     public sealed class RetrieveOnlyAttribute : Attribute
     {
     }
