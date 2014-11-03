@@ -666,32 +666,61 @@ namespace Dapperism.DataAccess
             }
 
         }
-        public IEnumerable<TEntity> GetAll(IDbTransaction transaction = null, params string[] selectClause)
+        public IEnumerable<TEntity> GetAll(int? pageIndex = null, int? pageSize = null, string[] pagingOrderCols = null, bool? isAscendingOrder = null, IDbTransaction transaction = null, params string[] selectClause)
         {
+            if (pageIndex != null && pageIndex < 1)
+                throw new ArgumentOutOfRangeException("pageIndex must be greater than zero");
+
+            if (pageSize != null && pageSize < 1)
+                throw new ArgumentOutOfRangeException("pageSize must be greater than zero");
+
+            bool isAsc = isAscendingOrder ?? true;
+
+            string isAscStr = isAsc ? " ASC " : " DESC ";
+
+
             var select = "*";
             if (selectClause.Any())
                 select = string.Format("[{0}]", selectClause.Aggregate((a, b) => string.Format("{0}] , [{1}", a, b)));
 
+
+
             var vt = string.IsNullOrEmpty(_entityAttributes.ViewName)
-                ? _entityAttributes.TableName
-                : _entityAttributes.ViewName;
+                ? string.Format("{0}.{1}", _entityAttributes.SchemaName, _entityAttributes.TableName)
+                : string.Format("{0}.{1}", _entityAttributes.SchemaName, _entityAttributes.ViewName);
 
             using (DbConnection)
             {
                 var trans = transaction ?? BeginTransaction();
                 using (trans)
                 {
-                    var result =
-                        DbConnection.Query<TEntity>(
-                            string.Format("SELECT {0} FROM {1}.{2}", select, _entityAttributes.SchemaName,
-                                vt), transaction: trans, commandType: CommandType.Text);
-
+                    IEnumerable<TEntity> result;
+                    if (pageIndex != null && pageSize != null)
+                    {
+                        string order;
+                        if (pagingOrderCols != null && pagingOrderCols.Any())
+                            order = string.Format("[{0}]", pagingOrderCols.Aggregate((a, b) => string.Format("{0} {2}] , [{1} {2}", a, b, isAscStr)));
+                        else
+                        {
+                            var pkLst = EntityAnalyser<TEntity>.GetPrimaryKeys().Select(x => x.Item1);
+                            order =
+                                string.Format("[{0}]", pkLst.Aggregate((a, b) => string.Format("{0}] , [{1}", a, b)))
+                                    .Replace("]", "] " + isAscStr);
+                        }
+                        var paging = string.Format(
+                                               "SELECT {0} FROM ( SELECT ROW_NUMBER() OVER(ORDER BY {1}) AS ROWNUMBER, {0} FROM {2} ) AS TBL WHERE ROWNUMBER BETWEEN (({3} - 1) * {4} + 1) AND ({3} * {4})",
+                                               select, order, vt, pageIndex, pageSize);
+                        result = DbConnection.Query<TEntity>(paging, transaction: trans, commandType: CommandType.Text);
+                    }
+                    else
+                        result = DbConnection.Query<TEntity>(string.Format("SELECT {0} FROM {1}.{2}", select, _entityAttributes.SchemaName, vt), transaction: trans, commandType: CommandType.Text);
                     if (transaction == null)
                         CommitTransaction(trans);
                     return result;
                 }
             }
         }
+
         public IEnumerable<TEntity> GetAllBySp(IDbTransaction transaction = null)
         {
             using (DbConnection)

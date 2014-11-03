@@ -24,7 +24,8 @@ namespace Dapperism.DataAccess
         void DeleteBySp(IList<TEntity> entities, IDbTransaction transaction = null);
         void DeleteBySp(IDbTransaction transaction = null, params  object[] id);
         void Delete(IDbTransaction transaction = null, params  object[] id);
-        IEnumerable<TEntity> GetAll(IDbTransaction transaction = null, params string[] selectClause);
+        IEnumerable<TEntity> GetAll(int? pageIndex = null, int? pageSize = null, string[] pagingOrderCols = null,
+            bool? isAscendingOrder = null, IDbTransaction transaction = null, params string[] selectClause);
         IEnumerable<TEntity> GetAllBySp(IDbTransaction transaction = null);
         TEntity GetById(IDbTransaction transaction = null, string[] selectClause = null, params object[] id);
         TEntity GetByIdWithSp(IDbTransaction transaction = null, params object[] id);

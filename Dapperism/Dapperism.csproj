@@ -97,6 +97,7 @@
     <Compile Include="Utilities\CacheManager.cs" />
     <Compile Include="Utilities\DateTimeExt.cs" />
     <Compile Include="Utilities\LambdaExt.cs" />
+    <Compile Include="Utilities\PagingExt.cs" />
     <Compile Include="Utilities\PersianDateTime.cs" />
     <Compile Include="Utilities\ReflectionManager.cs" />
     <Compile Include="Utilities\TimeSpanExt.cs" />
