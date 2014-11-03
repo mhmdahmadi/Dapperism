@@ -5,6 +5,7 @@ using System.Data;
 
 namespace Dapperism.Entities
 {
+    
     public class DynamicParameter
     {
         public string Name { get; set; }
@@ -56,6 +57,20 @@ namespace Dapperism.Entities
                 Size = dp.Size,
                 Value = dp.Value
             });
+        }
+
+        internal Dapper.DynamicParameters ToDapperParams()
+        {
+            var ddp = new Dapper.DynamicParameters();
+            foreach (var dp in _dpList)
+                ddp.Add(dp.Name, dp.Value, dp.DbType, dp.Direction, dp.Size);
+            return ddp;
+        }
+
+        public T Get<T>(string paramName)
+        {
+            var dp = ToDapperParams();
+            return dp.Get<T>(paramName);
         }
     }
 }

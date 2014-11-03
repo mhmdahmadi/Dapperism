@@ -12,7 +12,7 @@ using DynamicParameters = Dapper.DynamicParameters;
 
 namespace Dapperism.DataAccess
 {
-    public sealed class Repository<TEntity> :  IRepository<TEntity> where TEntity : class, IEntity, new()
+    public sealed class Repository<TEntity> : IRepository<TEntity> where TEntity : class, IEntity, new()
     {
         private IDbConnection _dbConnection;
         private DbProviderFactory _providerFactory;
@@ -116,7 +116,7 @@ namespace Dapperism.DataAccess
 
             if (_entityAttributes.RetrieveOnly)
                 return null;
-            
+
             ValidationResults = null;
             if (!entity.IsValid())
             {
@@ -269,7 +269,7 @@ namespace Dapperism.DataAccess
         {
             if (entities == null) return;
             if (_entityAttributes.RetrieveOnly)
-                return ;
+                return;
             ValidationResults = null;
             using (DbConnection)
             {
@@ -310,7 +310,7 @@ namespace Dapperism.DataAccess
         {
             if (entity == null) return;
             if (_entityAttributes.RetrieveOnly)
-                return ;
+                return;
             ValidationResults = null;
             if (!entity.IsValid())
             {
@@ -357,7 +357,7 @@ namespace Dapperism.DataAccess
         {
             if (entities == null) return;
             if (_entityAttributes.RetrieveOnly)
-                return ;
+                return;
             ValidationResults = null;
             var c = entities.Count();
             var cmd = new string[c];
@@ -521,7 +521,7 @@ namespace Dapperism.DataAccess
         {
             if (entities == null) return;
             if (_entityAttributes.RetrieveOnly)
-                return ;
+                return;
             ValidationResults = null;
             var c = entities.Count();
             var cmd = new string[c];
@@ -581,7 +581,7 @@ namespace Dapperism.DataAccess
         {
             if (entities == null) return;
             if (_entityAttributes.RetrieveOnly)
-                return ;
+                return;
             using (DbConnection)
             {
                 var trans = transaction ?? BeginTransaction();
@@ -608,7 +608,7 @@ namespace Dapperism.DataAccess
         {
             if (id == null) return;
             if (_entityAttributes.RetrieveOnly)
-                return ;
+                return;
             using (DbConnection)
             {
                 var trans = transaction ?? BeginTransaction();
@@ -638,7 +638,7 @@ namespace Dapperism.DataAccess
         {
             if (id == null) return;
             if (_entityAttributes.RetrieveOnly)
-                return ;
+                return;
             using (DbConnection)
             {
                 var trans = transaction ?? BeginTransaction();
@@ -848,9 +848,7 @@ namespace Dapperism.DataAccess
                 var trans = transaction ?? BeginTransaction();
                 using (trans)
                 {
-                    var dp = new Dapper.DynamicParameters();
-                    foreach (var dps in dynamicParams)
-                        dp.Add(dps.Name, dps.Value, dps.DbType, dps.Direction, dps.Size);
+                    var dp = dynamicParams.ToDapperParams();
 
                     var result = DbConnection.Query<TEntity>(spName, dp, trans,
                         commandType: CommandType.StoredProcedure);
@@ -890,9 +888,7 @@ namespace Dapperism.DataAccess
                 var trans = transaction ?? BeginTransaction();
                 using (trans)
                 {
-                    var dp = new Dapper.DynamicParameters();
-                    foreach (var dps in dynamicParams)
-                        dp.Add(dps.Name, dps.Value, dps.DbType, dps.Direction, dps.Size);
+                    var dp = dynamicParams.ToDapperParams();
 
                     var result = DbConnection.Query<dynamic>(spName, dp, trans,
                         commandType: CommandType.StoredProcedure);
