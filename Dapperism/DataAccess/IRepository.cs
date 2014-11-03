@@ -1,7 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Data;
 using Dapperism.Entities;
-using Dapperism.Enums;
 
 namespace Dapperism.DataAccess
 {
@@ -29,6 +28,11 @@ namespace Dapperism.DataAccess
         IEnumerable<TEntity> GetAllBySp(IDbTransaction transaction = null);
         TEntity GetById(IDbTransaction transaction = null, string[] selectClause = null, params object[] id);
         TEntity GetByIdWithSp(IDbTransaction transaction = null, params object[] id);
-        IEnumerable<object> ExecuteSqlFunction(string functionName, FunctionType functionType, IDbTransaction transaction = null, params string[] argumens);
+        IEnumerable<object> ExecSqlTableFunction(string functionName, IDbTransaction transaction = null, string[] selectClause = null, params string[] argumens);
+        dynamic ExecSqlScalarFunction(string functionName, IDbTransaction transaction = null, params string[] argumens);
+        IEnumerable<TEntity> ExecStoredProcedure(string spName, object param = null, IDbTransaction transaction = null);
+        IEnumerable<TEntity> ExecStoredProcedure(string spName, Dapperism.Entities.DynamicParameters dynamicParams, IDbTransaction transaction = null);
+        IEnumerable<object> ExecDynamicStoredProcedure(string spName, object param = null, IDbTransaction transaction = null);
+        IEnumerable<object> ExecDynamicStoredProcedure(string spName, Dapperism.Entities.DynamicParameters dynamicParams, IDbTransaction transaction = null);
     }
 }

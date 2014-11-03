@@ -59,6 +59,7 @@
     <Compile Include="Attributes\SelectByIdSpNameAttribute.cs" />
     <Compile Include="Attributes\SelectAllSpNameAttribute.cs" />
     <Compile Include="Attributes\ValidationModeAttribute.cs" />
+    <Compile Include="DataAccess\IRepository.cs" />
     <Compile Include="Entities\DynamicParameters.cs" />
     <Compile Include="Enums\FunctionType.cs" />
     <Compile Include="Enums\CascadeMode.cs" />
@@ -76,7 +77,6 @@
     <Compile Include="Attributes\TableNameAttribute.cs" />
     <Compile Include="Attributes\UpdateSpNameAttribute.cs" />
     <Compile Include="Attributes\ViewNameAttribute.cs" />
-    <Compile Include="DataAccess\IRepository.cs" />
     <Compile Include="DataAccess\Repository.cs" />
     <Compile Include="Entities\Entity.cs" />
     <Compile Include="Entities\EntityAttributes.cs" />
@@ -99,12 +99,10 @@
     <Compile Include="Utilities\TypeMapperExt.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="..\packages\Fody.1.26.1\build\Fody.targets" Condition="Exists('..\packages\Fody.1.26.1\build\Fody.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\Fody.1.26.1\build\Fody.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Fody.1.26.1\build\Fody.targets'))" />
   </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

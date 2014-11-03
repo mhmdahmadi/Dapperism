@@ -12,7 +12,7 @@ using DynamicParameters = Dapper.DynamicParameters;
 
 namespace Dapperism.DataAccess
 {
-    public sealed class Repository<TEntity> : IRepository<TEntity> where TEntity : class, IEntity, new()
+    public sealed class Repository<TEntity> :  IRepository<TEntity> where TEntity : class, IEntity, new()
     {
         private IDbConnection _dbConnection;
         private DbProviderFactory _providerFactory;
@@ -761,7 +761,7 @@ namespace Dapperism.DataAccess
                     if (selectClause != null && selectClause.Any())
                         select = string.Format("[{0}]", selectClause.Aggregate((a, b) => string.Format("{0}] , [{1}", a, b)));
 
-                    string args = "";
+                    var args = "";
                     if (argumens != null && argumens.Any())
                         args = ("'" + argumens.Aggregate((a, b) => a + "' , '" + b) + "'").Trim();
                     var result = DbConnection.Query<dynamic>(string.Format("Select {0} From {1}({2})", select, functionName, args), transaction: trans, commandType: CommandType.Text);
@@ -793,5 +793,88 @@ namespace Dapperism.DataAccess
                 }
             }
         }
+
+        public IEnumerable<TEntity> ExecStoredProcedure(string spName, object param = null, IDbTransaction transaction = null)
+        {
+            using (DbConnection)
+            {
+                var trans = transaction ?? BeginTransaction();
+                using (trans)
+                {
+                    var result = DbConnection.Query<TEntity>(spName, param, trans,
+                        commandType: CommandType.StoredProcedure);
+
+                    if (transaction == null)
+                        CommitTransaction(trans);
+
+                    return result;
+                }
+            }
+        }
+
+        public IEnumerable<TEntity> ExecStoredProcedure(string spName, Dapperism.Entities.DynamicParameters dynamicParams, IDbTransaction transaction = null)
+        {
+            using (DbConnection)
+            {
+                var trans = transaction ?? BeginTransaction();
+                using (trans)
+                {
+                    var dp = new Dapper.DynamicParameters();
+                    foreach (var dps in dynamicParams)
+                        dp.Add(dps.Name, dps.Value, dps.DbType, dps.Direction, dps.Size);
+
+                    var result = DbConnection.Query<TEntity>(spName, dp, trans,
+                        commandType: CommandType.StoredProcedure);
+
+                    if (transaction == null)
+                        CommitTransaction(trans);
+
+                    return result;
+                }
+            }
+        }
+
+
+
+        public IEnumerable<dynamic> ExecDynamicStoredProcedure(string spName, object param = null, IDbTransaction transaction = null)
+        {
+            using (DbConnection)
+            {
+                var trans = transaction ?? BeginTransaction();
+                using (trans)
+                {
+                    var result = DbConnection.Query<dynamic>(spName, param, trans,
+                        commandType: CommandType.StoredProcedure);
+
+                    if (transaction == null)
+                        CommitTransaction(trans);
+
+                    return result;
+                }
+            }
+        }
+
+        public IEnumerable<dynamic> ExecDynamicStoredProcedure(string spName, Dapperism.Entities.DynamicParameters dynamicParams, IDbTransaction transaction = null)
+        {
+            using (DbConnection)
+            {
+                var trans = transaction ?? BeginTransaction();
+                using (trans)
+                {
+                    var dp = new Dapper.DynamicParameters();
+                    foreach (var dps in dynamicParams)
+                        dp.Add(dps.Name, dps.Value, dps.DbType, dps.Direction, dps.Size);
+
+                    var result = DbConnection.Query<dynamic>(spName, dp, trans,
+                        commandType: CommandType.StoredProcedure);
+
+                    if (transaction == null)
+                        CommitTransaction(trans);
+
+                    return result;
+                }
+            }
+        }
+
     }
 }
