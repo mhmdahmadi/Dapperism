@@ -2,6 +2,7 @@ using System;
 using Dapperism.Attributes;
 using Dapperism.Entities;
 using Dapperism.Enums;
+using Dapperism.Utilities;
 
 namespace Dapperism.Console
 {
@@ -23,5 +24,24 @@ namespace Dapperism.Console
         public string ShipRegion { get; set; }
         public string ShipPostalCode { get; set; }
         public string ShipCountry { get; set; }
+
+        [Separated]
+        public PersianDateTime PersianOrderDate
+        {
+            get { return OrderDate; }
+
+        }
+        [Separated]
+        public PersianDateTime PersianRequiredDate
+        {
+            get { return RequiredDate; }
+
+        }
+        [Separated]
+        public PersianDateTime PersianShippedDate
+        {
+            get { return ShippedDate; }
+            
+        }
     }
 }

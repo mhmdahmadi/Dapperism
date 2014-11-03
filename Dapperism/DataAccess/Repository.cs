@@ -685,7 +685,7 @@ namespace Dapperism.DataAccess
 
 
 
-            var vt = string.IsNullOrEmpty(_entityAttributes.ViewName)
+            var svt = string.IsNullOrEmpty(_entityAttributes.ViewName)
                 ? string.Format("{0}.{1}", _entityAttributes.SchemaName, _entityAttributes.TableName)
                 : string.Format("{0}.{1}", _entityAttributes.SchemaName, _entityAttributes.ViewName);
 
@@ -709,18 +709,17 @@ namespace Dapperism.DataAccess
                         }
                         var paging = string.Format(
                                                "SELECT {0} FROM ( SELECT ROW_NUMBER() OVER(ORDER BY {1}) AS ROWNUMBER, {0} FROM {2} ) AS TBL WHERE ROWNUMBER BETWEEN (({3} - 1) * {4} + 1) AND ({3} * {4})",
-                                               select, order, vt, pageIndex, pageSize);
+                                               select, order, svt, pageIndex, pageSize);
                         result = DbConnection.Query<TEntity>(paging, transaction: trans, commandType: CommandType.Text);
                     }
                     else
-                        result = DbConnection.Query<TEntity>(string.Format("SELECT {0} FROM {1}.{2}", select, _entityAttributes.SchemaName, vt), transaction: trans, commandType: CommandType.Text);
+                        result = DbConnection.Query<TEntity>(string.Format("SELECT {0} FROM {1}.{2}", select, _entityAttributes.SchemaName, svt), transaction: trans, commandType: CommandType.Text);
                     if (transaction == null)
                         CommitTransaction(trans);
                     return result;
                 }
             }
         }
-
         public IEnumerable<TEntity> GetAllBySp(IDbTransaction transaction = null)
         {
             using (DbConnection)
@@ -830,7 +829,6 @@ namespace Dapperism.DataAccess
                 }
             }
         }
-
         public dynamic ExecSqlScalarFunction(string functionName, IDbTransaction transaction = null, params string[] argumens)
         {
             using (DbConnection)
@@ -851,7 +849,6 @@ namespace Dapperism.DataAccess
                 }
             }
         }
-
         public IEnumerable<TEntity> ExecStoredProcedure(string spName, object param = null, IDbTransaction transaction = null)
         {
             using (DbConnection)
@@ -869,7 +866,6 @@ namespace Dapperism.DataAccess
                 }
             }
         }
-
         public IEnumerable<TEntity> ExecStoredProcedure(string spName, Dapperism.Entities.DynamicParameters dynamicParams, IDbTransaction transaction = null)
         {
             using (DbConnection)
@@ -889,9 +885,6 @@ namespace Dapperism.DataAccess
                 }
             }
         }
-
-
-
         public IEnumerable<dynamic> ExecDynamicStoredProcedure(string spName, object param = null, IDbTransaction transaction = null)
         {
             using (DbConnection)
@@ -909,7 +902,6 @@ namespace Dapperism.DataAccess
                 }
             }
         }
-
         public IEnumerable<dynamic> ExecDynamicStoredProcedure(string spName, Dapperism.Entities.DynamicParameters dynamicParams, IDbTransaction transaction = null)
         {
             using (DbConnection)
@@ -929,8 +921,5 @@ namespace Dapperism.DataAccess
                 }
             }
         }
-
-
-
     }
 }
