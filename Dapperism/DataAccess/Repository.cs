@@ -614,7 +614,7 @@ namespace Dapperism.DataAccess
                 var trans = transaction ?? BeginTransaction();
                 using (trans)
                 {
-                    var ids = EntityAnalyser<TEntity>.GetPrimaryKeys();
+                    var ids = _entityAttributes.PrimaryKeys;
                     string spName = _entityAttributes.DeleteSpName;
 
                     if (ids.Count() != id.Count())
@@ -644,7 +644,7 @@ namespace Dapperism.DataAccess
                 var trans = transaction ?? BeginTransaction();
                 using (trans)
                 {
-                    var ids = EntityAnalyser<TEntity>.GetPrimaryKeys();
+                    var ids =  _entityAttributes.PrimaryKeys;
                     string str = "";
 
                     if (ids.Count() != id.Count())
@@ -702,7 +702,7 @@ namespace Dapperism.DataAccess
                             order = string.Format("[{0}]", pagingOrderCols.Aggregate((a, b) => string.Format("{0} {2}] , [{1} {2}", a, b, isAscStr)));
                         else
                         {
-                            var pkLst = EntityAnalyser<TEntity>.GetPrimaryKeys().Select(x => x.Item1);
+                            var pkLst =  _entityAttributes.PrimaryKeys.Select(x => x.Item1);
                             order =
                                 string.Format("[{0}]", pkLst.Aggregate((a, b) => string.Format("{0}] , [{1}", a, b)))
                                     .Replace("]", "] " + isAscStr);
@@ -748,7 +748,7 @@ namespace Dapperism.DataAccess
                 ? _entityAttributes.TableName
                 : _entityAttributes.ViewName;
 
-            var ids = EntityAnalyser<TEntity>.GetPrimaryKeys();
+            var ids =  _entityAttributes.PrimaryKeys;
             string str = "";
 
             if (ids.Count() != id.Count())
@@ -780,7 +780,7 @@ namespace Dapperism.DataAccess
         public TEntity GetByIdWithSp(IDbTransaction transaction = null, params object[] id)
         {
             var spName = _entityAttributes.SelectByIdSpName;
-            var ids = EntityAnalyser<TEntity>.GetPrimaryKeys();
+            var ids =  _entityAttributes.PrimaryKeys;
 
             if (ids.Count() != id.Count())
                 throw new Exception("Id`s count not matched");

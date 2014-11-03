@@ -41,7 +41,7 @@ namespace Dapperism.Console
         public PersianDateTime PersianShippedDate
         {
             get { return ShippedDate; }
-            
+
         }
     }
 }

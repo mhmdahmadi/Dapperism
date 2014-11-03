@@ -117,6 +117,52 @@ namespace Dapperism.Entities
             if (vMode != null)
                 cMode = vMode.CascadeMode;
 
+            var result =
+                dic.Where(x => x.Value.AutoNumber != -1 && !x.Value.IsViewColumn)
+                    .OrderBy(x => x.Value.ColumnName).ToList();
+
+            var lstPk = result.Select(r => new Tuple<string, string, DbType>(r.Value.ColumnName, r.Value.SpParamName, r.Value.ParameterType)).ToList();
+
+            var stv = string.Format("{0}.{1}", schemaName, (string.IsNullOrEmpty(viewName) ? tableName : viewName));
+
+            var whereSt = lstPk.Select(x => x.Item1).Aggregate("", (current, ws) => current + string.Format("[{0}] = ${0}$", ws)).Replace("$[", "$ , [");
+
+            var fieldsUpdate =
+                dic.Where(x => x.Value.AutoNumber == -1 && !x.Value.IsViewColumn).Select(x => x.Value.ColumnName);
+
+            var setStr =
+                fieldsUpdate.Aggregate("",
+                    (current, colName) => current + ("[" + colName + "] = $" + colName + "$"))
+                    .Replace("$[", "$ , [");
+
+            var upSt = string.Format("UPDATE {0}.{1} SET {2} WHERE {3}", schemaName, tableName, setStr, whereSt);
+
+            var srSt = string.Format("SELECT * FROM {0}", stv);
+
+            var srIdSt = string.Format("SELECT * FROM {0} WHERE {1}", stv, whereSt);
+
+            var fIns = dic.Where(x => x.Value.AutoNumber != (int)AutoNumber.Yes && !x.Value.IsViewColumn)
+                .Select(x => x.Value.ColumnName).ToList();
+
+            var fieldsInsert = string.Format("[{0}]", fIns.Aggregate((a, b) => a + "] , [" + b));
+            var valuesInsert = string.Format("${0}$", fIns.Aggregate((a, b) => a + "$ , $" + b));
+
+            var insStr = string.Format("INSERT INTO {0}.{1} ({2}) VALUES ({3}) ", schemaName,
+                tableName, fieldsInsert, valuesInsert);
+
+            string insRetStr;
+            var pka = dic.FirstOrDefault(x => x.Value.AutoNumber == (int) AutoNumber.Yes && !x.Value.IsViewColumn).Value;
+            if (pka != null)
+            {
+                var pkCol = pka.ColumnName;
+                var iRetStr = string.Format("SELECT * FROM {0}.{1} WHERE {2} = SCOPE_IDENTITY() ",
+                    schemaName, tableName, pkCol);
+                insRetStr = insStr + iRetStr;
+            }
+            else
+                insRetStr = "";
+
+            var delSt = string.Format("DELETE FROM {0}.{1} WHERE {2}", schemaName, tableName, whereSt);
 
             var ea = new EntityAttributes
             {
@@ -133,30 +179,22 @@ namespace Dapperism.Entities
                 CascadeMode = cMode,
                 SelectAllSpName = sAllName,
                 SelectByIdSpName = sByIdName,
-                RetrieveOnly = rOnly
+                RetrieveOnly = rOnly,
+                PrimaryKeys = lstPk,
+                WhereStatement = whereSt,
+                STVCombination = stv,
+                UpdateStatement = upSt,
+                SelectAllStatement = srSt,
+                SelectByIdStatement = srIdSt,
+                InsertStatement = insStr,
+                InsertReturnStatement = insRetStr,
+                DeleteStatement = delSt
+
             };
 
 
             CacheManager.Instance[typeFullName] = ea;
             return ea;
-        }
-
-        internal static List<Tuple<string, string, DbType>> GetPrimaryKeys()
-        {
-            var key = typeof(TEntity).FullName.Trim() + ".pk";
-            var status = CacheManager.Instance.Contains(key);
-            if (status)
-            {
-                return CacheManager.Instance[key] as List<Tuple<string, string, DbType>>;
-            }
-            var info = GetInfo();
-            var result =
-                info.NotSeparatedInfo.Where(x => x.Value.AutoNumber != -1 && !x.Value.IsViewColumn)
-                    .OrderBy(x => x.Value.ColumnName).ToList();
-
-            var lst = result.Select(r => new Tuple<string, string, DbType>(r.Value.ColumnName, r.Value.SpParamName, r.Value.ParameterType)).ToList();
-            CacheManager.Instance[key] = lst;
-            return lst;
         }
 
         internal static List<EntityMap> GetData(TEntity entity)

@@ -97,6 +97,6 @@ namespace Dapperism.Console
             var t8 = st8.ElapsedMilliseconds;
 
             var s = CacheManager.Instance.Size;
-        }
+         }
     }
 }

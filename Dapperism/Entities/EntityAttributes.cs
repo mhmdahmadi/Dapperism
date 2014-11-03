@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Reflection;
 using Dapperism.Enums;
 
@@ -21,5 +22,14 @@ namespace Dapperism.Entities
         internal IList<PropertyInfo> NotSeparated { get; set; }
         internal string[] PropertyNames { get; set; }
         internal CascadeMode CascadeMode { get; set; }
+        internal string InsertStatement { get; set; }
+        internal string InsertReturnStatement { get; set; }
+        internal string UpdateStatement { get; set; }
+        internal string DeleteStatement { get; set; }
+        internal string SelectAllStatement { get; set; }
+        internal string SelectByIdStatement { get; set; }
+        internal string WhereStatement { get; set; }
+        internal List<Tuple<string, string, DbType>> PrimaryKeys { get; set; }
+        internal string STVCombination { get; set; }
     }
 }
