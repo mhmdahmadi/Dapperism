@@ -750,29 +750,41 @@ namespace Dapperism.DataAccess
                 }
             }
         }
-        public IEnumerable<dynamic> ExecuteSqlFunction(string functionName, FunctionType functionType, IDbTransaction transaction = null, params string[] argumens)
+        public IEnumerable<dynamic> ExecSqlTableFunction(string functionName, IDbTransaction transaction = null, string[] selectClause = null, params string[] argumens)
         {
             using (DbConnection)
             {
                 var trans = transaction ?? BeginTransaction();
                 using (trans)
                 {
+                    var select = "*";
+                    if (selectClause != null && selectClause.Any())
+                        select = string.Format("[{0}]", selectClause.Aggregate((a, b) => string.Format("{0}] , [{1}", a, b)));
+
                     string args = "";
                     if (argumens != null && argumens.Any())
                         args = ("'" + argumens.Aggregate((a, b) => a + "' , '" + b) + "'").Trim();
+                    var result = DbConnection.Query<dynamic>(string.Format("Select {0} From {1}({2})", select, functionName, args), transaction: trans, commandType: CommandType.Text);
+                    if (transaction == null)
+                        CommitTransaction(trans);
 
-                    IEnumerable<dynamic> result;
-                    switch (functionType)
-                    {
-                        case FunctionType.Table:
-                            result = DbConnection.Query<dynamic>(string.Format("Select * From {0}({1})", functionName, args), transaction: trans, commandType: CommandType.Text);
-                            break;
-                        case FunctionType.Scalar:
-                            result = DbConnection.Query<dynamic>(string.Format("Select {0}({1}) AS Result", functionName, args), transaction: trans, commandType: CommandType.Text);
-                            break;
-                        default:
-                            throw new ArgumentOutOfRangeException("functionType");
-                    }
+                    return result;
+                }
+            }
+        }
+
+        public dynamic ExecSqlScalarFunction(string functionName, IDbTransaction transaction = null, params string[] argumens)
+        {
+            using (DbConnection)
+            {
+                var trans = transaction ?? BeginTransaction();
+                using (trans)
+                {
+                    var args = "";
+                    if (argumens != null && argumens.Any())
+                        args = ("'" + argumens.Aggregate((a, b) => a + "' , '" + b) + "'").Trim();
+
+                    var result = DbConnection.Query<dynamic>(string.Format("Select {0}({1}) AS Result", functionName, args), transaction: trans, commandType: CommandType.Text).FirstOrDefault();
 
                     if (transaction == null)
                         CommitTransaction(trans);
