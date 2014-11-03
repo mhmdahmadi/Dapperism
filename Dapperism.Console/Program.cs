@@ -38,11 +38,17 @@ namespace Dapperism.Console
             var lst5 = rep.GetAll(100, 7);
             st5.Stop();
 
+            var st6 = new Stopwatch();
+            st6.Start();
+            var lst6 = rep.GetAll();
+            st6.Stop();
+
             var t1 = st1.ElapsedMilliseconds;
             var t2 = st2.ElapsedMilliseconds;
             var t3 = st3.ElapsedMilliseconds;
-            var t4 = st2.ElapsedMilliseconds;
-            var t5 = st3.ElapsedMilliseconds;
+            var t4 = st4.ElapsedMilliseconds;
+            var t5 = st5.ElapsedMilliseconds;
+            var t6 = st6.ElapsedMilliseconds;
         }
     }
 }

@@ -713,7 +713,7 @@ namespace Dapperism.DataAccess
                         result = DbConnection.Query<TEntity>(paging, transaction: trans, commandType: CommandType.Text);
                     }
                     else
-                        result = DbConnection.Query<TEntity>(string.Format("SELECT {0} FROM {1}.{2}", select, _entityAttributes.SchemaName, svt), transaction: trans, commandType: CommandType.Text);
+                        result = DbConnection.Query<TEntity>(string.Format("SELECT {0} FROM {1}", select, svt), transaction: trans, commandType: CommandType.Text);
                     if (transaction == null)
                         CommitTransaction(trans);
                     return result;
