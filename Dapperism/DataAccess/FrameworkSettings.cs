@@ -203,7 +203,7 @@ namespace Dapperism.DataAccess
             };
             CacheManager.Instance[typeFullName] = ea;
         }
-        public static void WarmingUp(params string[] assemblyPaths)
+        /*public static void WarmingUp(params string[] assemblyPaths)
         {
             if (assemblyPaths == null || !assemblyPaths.Any()) return;
             foreach (var assemblyPath in assemblyPaths)
@@ -220,7 +220,7 @@ namespace Dapperism.DataAccess
                     GetInfo(type);
                 }
             }
-        }
+        }*/
 
         public static void WarmingUp()
         {            
