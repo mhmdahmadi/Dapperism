@@ -233,7 +233,7 @@ namespace Dapperism.Query
                         break;
 
 
-
+                        /*
                     case FilterOperation.EqualDateTime:
                         if (value is DateTime)
                         {
@@ -271,43 +271,46 @@ namespace Dapperism.Query
                             QueryText += string.Format("({0} {1} '{2}')", columnName, "<=", v);
                         }
                         break;
-
-
                     case FilterOperation.EqualPersianDateTime:
-                        if (value is PersianDateTime)
+                        var time = value as PersianDateTime;
+                        if (time != null)
                         {
-                            var v = ((PersianDateTime)value).ToDateTime().ToString("yyyy-MM-dd HH:mm:ss.fff");
+                            var v = time.ToDateTime().ToString("yyyy-MM-dd HH:mm:ss.fff");
                             QueryText += string.Format("({0} {1} '{2}')", columnName, "=", v);
                         }
                         break;
                     case FilterOperation.GreaterThanPersianDateTime:
-                        if (value is PersianDateTime)
+                        var dateTime = value as PersianDateTime;
+                        if (dateTime != null)
                         {
-                            var v = ((PersianDateTime)value).ToDateTime().ToString("yyyy-MM-dd HH:mm:ss.fff");
+                            var v = dateTime.ToDateTime().ToString("yyyy-MM-dd HH:mm:ss.fff");
                             QueryText += string.Format("({0} {1} '{2}')", columnName, ">", v);
                         }
                         break;
                     case FilterOperation.LessThanPersianDateTime:
-                        if (value is PersianDateTime)
+                        var persianDateTime = value as PersianDateTime;
+                        if (persianDateTime != null)
                         {
-                            var v = ((PersianDateTime)value).ToDateTime().ToString("yyyy-MM-dd HH:mm:ss.fff");
+                            var v = persianDateTime.ToDateTime().ToString("yyyy-MM-dd HH:mm:ss.fff");
                             QueryText += string.Format("({0} {1} '{2}')", columnName, "<", v);
                         }
                         break;
                     case FilterOperation.GreaterThanEqualPersianDateTime:
-                        if (value is PersianDateTime)
+                        var time1 = value as PersianDateTime;
+                        if (time1 != null)
                         {
-                            var v = ((PersianDateTime)value).ToDateTime().ToString("yyyy-MM-dd HH:mm:ss.fff");
+                            var v = time1.ToDateTime().ToString("yyyy-MM-dd HH:mm:ss.fff");
                             QueryText += string.Format("({0} {1} '{2}')", columnName, ">=", v);
                         }
                         break;
                     case FilterOperation.LessThanEqualPersianDateTime:
-                        if (value is PersianDateTime)
+                        var value1 = value as PersianDateTime;
+                        if (value1 != null)
                         {
-                            var v = ((PersianDateTime)value).ToDateTime().ToString("yyyy-MM-dd HH:mm:ss.fff");
+                            var v = value1.ToDateTime().ToString("yyyy-MM-dd HH:mm:ss.fff");
                             QueryText += string.Format("({0} {1} '{2}')", columnName, "<=", v);
                         }
-                        break;
+                        break;*/
                 }
             }
 

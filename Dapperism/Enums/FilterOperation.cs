@@ -24,16 +24,6 @@ namespace Dapperism.Enums
         DoesNotEndWith,
         IsNull,
         IsNotNull,
-        In,
-        EqualDateTime,
-        GreaterThanDateTime,
-        LessThanDateTime,
-        GreaterThanEqualDateTime,
-        LessThanEqualDateTime,
-        EqualPersianDateTime,
-        GreaterThanPersianDateTime,
-        LessThanPersianDateTime,
-        GreaterThanEqualPersianDateTime,
-        LessThanEqualPersianDateTime
+        In
     }
 }

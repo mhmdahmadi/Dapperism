@@ -26,12 +26,9 @@ namespace Dapperism.Console
                 .Begin
                 .Where(x => x.OrderId, FilterOperation.Equal, 10252)
                 .Or()
-                .Where(x => x.Freight, FilterOperation.Equal, 140.51)
+                .Where(x => x.OrderDate, FilterOperation.Equal, new PersianDateTime(1377, 01, 07))
                 .End
-                .Select(false, new[]
-                {
-                    "ShipVia"
-                });
+                .Select();
 
 
             var aaa = rep.GetByFilter(query);

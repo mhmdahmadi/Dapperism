@@ -19,7 +19,7 @@ namespace Dapperism.Query
         private bool _allNot;
         internal string CreateQuery()
         {
-             var key = typeof(TEntity).FullName.Trim();
+            var key = typeof(TEntity).FullName.Trim();
             var ea = CacheManager.Instance[key] as EntityAttributes;
             if (ea == null)
                 throw new Exception("type not found");
@@ -90,27 +90,120 @@ namespace Dapperism.Query
 
         public FilterQuery<TEntity> Where(Expression<Func<TEntity, object>> field, FilterOperation filterOperation, object value)
         {
-            var name = field.GetMemberName();
-            var key = typeof(TEntity).FullName.Trim() + "." + name.Trim();
+            var columnName = field.GetMemberName();
+            /*var key = typeof(TEntity).FullName.Trim() + "." + name.Trim();
             var data = EntityAnalyser<TEntity>.GetInfo();
-            var type = data.NotSeparatedInfo[key].PropertyType;
+            var type = data.NotSeparatedInfo[key].PropertyType;*/
 
-            
             switch (filterOperation)
             {
                 case FilterOperation.Equal:
-                    _qText += string.Format("({0} {1} {2})", name, " = ", value.ToString());
+                    var v1 = value as PersianDateTime;
+                    if (value is DateTime)
+                    {
+                        var v = ((DateTime)value).ToString("yyyy-MM-dd HH:mm:ss.fff");
+                        _qText += string.Format("({0} {1} '{2}')", columnName, "=", v);
+                        break;
+                    }
+                    if (v1 != null)
+                    {
+                        var v = v1.ToDateTime().ToString("yyyy-MM-dd HH:mm:ss.fff");
+                        _qText += string.Format("({0} {1} '{2}')", columnName, "=", v);
+                        break;
+                    }
+                    _qText += string.Format("({0} {1} '{2}')", columnName, "=", value);
                     break;
                 case FilterOperation.NotEqual:
+                    var v2 = value as PersianDateTime;
+                    if (value is DateTime)
+                    {
+                        var v = ((DateTime)value).ToString("yyyy-MM-dd HH:mm:ss.fff");
+                        _qText += string.Format("({0} {1} '{2}')", columnName, "!=", v);
+                        break;
+                    }
+                    if (v2 != null)
+                    {
+                        var v = v2.ToDateTime().ToString("yyyy-MM-dd HH:mm:ss.fff");
+                        _qText += string.Format("({0} {1} '{2}')", columnName, "!=", v);
+                        break;
+                    }
+                    _qText += string.Format("({0} {1} '{2}')", columnName, "!=", value);
                     break;
                 case FilterOperation.GreaterThan:
+                    var v3 = value as PersianDateTime;
+                    if (value is DateTime)
+                    {
+                        var v = ((DateTime)value).ToString("yyyy-MM-dd HH:mm:ss.fff");
+                        _qText += string.Format("({0} {1} '{2}')", columnName, ">", v);
+                        break;
+                    }
+                    if (v3 != null)
+                    {
+                        var v = v3.ToDateTime().ToString("yyyy-MM-dd HH:mm:ss.fff");
+                        _qText += string.Format("({0} {1} '{2}')", columnName, ">", v);
+                        break;
+                    }
+                    _qText += string.Format("({0} {1} '{2}')", columnName, ">", value);
                     break;
                 case FilterOperation.GreaterThanEqual:
+                    var v4 = value as PersianDateTime;
+                    if (value is DateTime)
+                    {
+                        var v = ((DateTime)value).ToString("yyyy-MM-dd HH:mm:ss.fff");
+                        _qText += string.Format("({0} {1} '{2}')", columnName, ">=", v);
+                        break;
+                    }
+                    if (v4 != null)
+                    {
+                        var v = v4.ToDateTime().ToString("yyyy-MM-dd HH:mm:ss.fff");
+                        _qText += string.Format("({0} {1} '{2}')", columnName, ">=", v);
+                        break;
+                    }
+                    _qText += string.Format("({0} {1} '{2}')", columnName, ">=", value);
                     break;
                 case FilterOperation.LessThan:
+                    var v5 = value as PersianDateTime;
+                    if (value is DateTime)
+                    {
+                        var v = ((DateTime)value).ToString("yyyy-MM-dd HH:mm:ss.fff");
+                        _qText += string.Format("({0} {1} '{2}')", columnName, "<", v);
+                        break;
+                    }
+                    if (v5 != null)
+                    {
+                        var v = v5.ToDateTime().ToString("yyyy-MM-dd HH:mm:ss.fff");
+                        _qText += string.Format("({0} {1} '{2}')", columnName, "<", v);
+                        break;
+                    }
+                    _qText += string.Format("({0} {1} '{2}')", columnName, "<", value);
                     break;
                 case FilterOperation.LessThanEqual:
+                    var v6 = value as PersianDateTime;
+                    if (value is DateTime)
+                    {
+                        var v = ((DateTime)value).ToString("yyyy-MM-dd HH:mm:ss.fff");
+                        _qText += string.Format("({0} {1} '{2}')", columnName, "<=", v);
+                        break;
+                    }
+                    if (v6 != null)
+                    {
+                        var v = v6.ToDateTime().ToString("yyyy-MM-dd HH:mm:ss.fff");
+                        _qText += string.Format("({0} {1} '{2}')", columnName, "<=", v);
+                        break;
+                    }
+                    _qText += string.Format("({0} {1} '{2}')", columnName, "<=", value);
                     break;
+
+
+
+
+
+
+
+
+
+
+
                 case FilterOperation.Like:
                     break;
                 case FilterOperation.MultipleLike:
@@ -131,39 +224,37 @@ namespace Dapperism.Query
                     break;
                 case FilterOperation.NotMultipleEndLike:
                     break;
+
+
+
+
+
+
+
+
+
+
+
                 case FilterOperation.StartsWith:
+                    _qText += string.Format("({0} {1} N'{2}%')", columnName, "LIKE", value);
                     break;
                 case FilterOperation.DoesNotStartWith:
+                    _qText += string.Format("({0} {1} N'{2}%')", columnName, "NOT LIKE", value);
                     break;
                 case FilterOperation.EndsWith:
+                    _qText += string.Format("({0} {1} N'%{2}')", columnName, "LIKE", value);
                     break;
                 case FilterOperation.DoesNotEndWith:
+                    _qText += string.Format("({0} {1} N'%{2}')", columnName, "NOT LIKE", value);
                     break;
                 case FilterOperation.IsNull:
+                    _qText += string.Format("({0} {1})", columnName, "IS NULL");
                     break;
                 case FilterOperation.IsNotNull:
+                    _qText += string.Format("({0} {1})", columnName, "IS NOT NULL");
                     break;
                 case FilterOperation.In:
-                    break;
-                case FilterOperation.EqualDateTime:
-                    break;
-                case FilterOperation.GreaterThanDateTime:
-                    break;
-                case FilterOperation.LessThanDateTime:
-                    break;
-                case FilterOperation.GreaterThanEqualDateTime:
-                    break;
-                case FilterOperation.LessThanEqualDateTime:
-                    break;
-                case FilterOperation.EqualPersianDateTime:
-                    break;
-                case FilterOperation.GreaterThanPersianDateTime:
-                    break;
-                case FilterOperation.LessThanPersianDateTime:
-                    break;
-                case FilterOperation.GreaterThanEqualPersianDateTime:
-                    break;
-                case FilterOperation.LessThanEqualPersianDateTime:
+                    _qText += string.Format("({0} {1} ({2}))", columnName, "IN", value);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException("filterOperation");
