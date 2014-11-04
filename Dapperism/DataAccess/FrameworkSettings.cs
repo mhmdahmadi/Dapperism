@@ -14,7 +14,7 @@ using Fasterflect;
 
 namespace Dapperism.DataAccess
 {
-    public static class FrameworkSettings
+    public static class DapperismSettings
     {
         private static void GetInfo(Type type)
         {

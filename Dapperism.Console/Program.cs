@@ -15,7 +15,7 @@ namespace Dapperism.Console
     {
         static void Main(string[] args)
         {
-            FrameworkSettings.WarmingUp();
+            DapperismSettings.WarmingUp();
 
             var rep = new Repository<Order>();
             var st1 = new Stopwatch();
