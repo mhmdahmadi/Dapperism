@@ -25,7 +25,10 @@ namespace Dapperism.Console
             var st11 = new Stopwatch();
             st11.Start();
             var query = new FilterQuery<Order>()
+                .Not
                 .Where(x => x.ShipVia, FilterOperation.GreaterThanEqual, 2)
+                .And
+                .Where(x => x.ShipName, FilterOperation.EndsWith, 'o')
                 .Select();
             var aaa = rep.GetByFilter(query);
             st11.Stop();
