@@ -7,6 +7,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Dapperism.DataAccess;
 using Dapperism.Entities;
+using Dapperism.Enums;
+using Dapperism.Query;
 using Dapperism.Utilities;
 
 namespace Dapperism.Console
@@ -18,7 +20,25 @@ namespace Dapperism.Console
             DapperismSettings.WarmingUp();
 
             var rep = new Repository<Order>();
-            var st1 = new Stopwatch();
+
+
+            var query = new FilterQuery<Order>()
+                .Begin
+                .Where(x => x.OrderId, FilterOperation.Equal, 10252)
+                .Or()
+                .Where(x => x.Freight, FilterOperation.Equal, 140.51)
+                .End
+                .Select(false, new[]
+                {
+                    "ShipVia"
+                });
+
+
+            var aaa = rep.GetByFilter(query);
+
+
+
+            /*var st1 = new Stopwatch();
             st1.Start();
             var lst = rep.GetAll(4, 41, selectClause: new[]
             {
@@ -136,8 +156,6 @@ namespace Dapperism.Console
             });
             st10.Stop();
 
-            var lstt = Assembly.GetExecutingAssembly().GetTypes().Where(x => x.GetInterfaces().Contains(typeof(IEntity))).ToList();
-
             var t1 = st1.ElapsedMilliseconds;
             var t2 = st2.ElapsedMilliseconds;
             var t3 = st3.ElapsedMilliseconds;
@@ -149,7 +167,7 @@ namespace Dapperism.Console
             var t9 = st9.ElapsedMilliseconds;
             var t10 = st10.ElapsedMilliseconds;
 
-            var all = t1 + t2 + t3 + t4 + t5 + t6 + t7 + t8 + t9 + t10;
+            var all = t1 + t2 + t3 + t4 + t5 + t6 + t7 + t8 + t9 + t10;*/
         }
     }
 }

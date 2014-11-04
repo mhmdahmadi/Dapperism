@@ -93,8 +93,8 @@
     <Compile Include="Enums\AutoNumber.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Enums\FilterOperation.cs" />
+    <Compile Include="Query\FilterQuery2.cs" />
     <Compile Include="Query\FilterQuery.cs" />
-    <Compile Include="Query\Predicate.cs" />
     <Compile Include="Utilities\CacheManager.cs" />
     <Compile Include="Utilities\DateTimeExt.cs" />
     <Compile Include="Utilities\LambdaExt.cs" />

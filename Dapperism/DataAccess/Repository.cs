@@ -7,6 +7,7 @@ using System.Linq;
 using Dapper;
 using Dapperism.Entities;
 using Dapperism.Enums;
+using Dapperism.Query;
 using Dapperism.Utilities;
 using DynamicParameters = Dapper.DynamicParameters;
 
@@ -933,6 +934,25 @@ namespace Dapperism.DataAccess
                 }
 
 
+            }
+        }
+
+
+        public IEnumerable<TEntity> GetByFilter(FilterQuery<TEntity> query, IDbTransaction transaction = null)
+        {
+            using (DbConnection)
+            {
+                var trans = transaction ?? BeginTransaction();
+                using (trans)
+                {
+                    var q = query.CreateQuery();
+                    var r = DbConnection.Query<TEntity>(q, commandType: CommandType.Text, transaction: trans);
+
+                    if (transaction == null)
+                        CommitTransaction(trans);
+
+                    return r;
+                }
             }
         }
     }
