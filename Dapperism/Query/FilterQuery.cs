@@ -194,47 +194,12 @@ namespace Dapperism.Query
                     _qText += string.Format("({0} {1} '{2}')", columnName, "<=", value);
                     break;
 
-
-
-
-
-
-
-
-
-
-
-                case FilterOperation.Like:
-                    break;
-                case FilterOperation.MultipleLike:
-                    break;
-                case FilterOperation.MultipleTotalLike:
-                    break;
-                case FilterOperation.MultipleStartLike:
-                    break;
-                case FilterOperation.MultipleEndLike:
-                    break;
                 case FilterOperation.NotLike:
+                    _qText += string.Format("({0} {1} N'%{2}%')", columnName, "NOT LIKE", value);
                     break;
-                case FilterOperation.NotMultipleLike:
+                case FilterOperation.Like:
+                    _qText += string.Format("({0} {1} N'%{2}%')", columnName, "LIKE", value);
                     break;
-                case FilterOperation.NotMultipleTotalLike:
-                    break;
-                case FilterOperation.NotMultipleStartLike:
-                    break;
-                case FilterOperation.NotMultipleEndLike:
-                    break;
-
-
-
-
-
-
-
-
-
-
-
                 case FilterOperation.StartsWith:
                     _qText += string.Format("({0} {1} N'{2}%')", columnName, "LIKE", value);
                     break;
@@ -256,6 +221,41 @@ namespace Dapperism.Query
                 case FilterOperation.In:
                     _qText += string.Format("({0} {1} ({2}))", columnName, "IN", value);
                     break;
+
+
+
+
+
+
+
+                case FilterOperation.MultipleLike:
+                    break;
+                case FilterOperation.MultipleTotalLike:
+                    break;
+                case FilterOperation.MultipleStartLike:
+                    break;
+                case FilterOperation.MultipleEndLike:
+                    break;
+                case FilterOperation.NotMultipleLike:
+                    break;
+                case FilterOperation.NotMultipleTotalLike:
+                    break;
+                case FilterOperation.NotMultipleStartLike:
+                    break;
+                case FilterOperation.NotMultipleEndLike:
+                    break;
+
+
+
+
+
+
+
+
+
+
+
+
                 default:
                     throw new ArgumentOutOfRangeException("filterOperation");
             }
