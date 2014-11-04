@@ -145,7 +145,6 @@ namespace Dapperism.Console
             var t8 = st8.ElapsedMilliseconds;
             var t9 = st9.ElapsedMilliseconds;
             var t10 = st10.ElapsedMilliseconds;
-
         }
     }
 }

@@ -64,7 +64,7 @@
     <Compile Include="Attributes\SelectAllSpNameAttribute.cs" />
     <Compile Include="Attributes\ValidationModeAttribute.cs" />
     <Compile Include="DataAccess\IRepository.cs" />
-    <Compile Include="DataAccess\FrameworkSettings.cs" />
+    <Compile Include="Utilities\DapperismSettings.cs" />
     <Compile Include="Entities\DynamicParameters.cs" />
     <Compile Include="Enums\FunctionType.cs" />
     <Compile Include="Enums\CascadeMode.cs" />

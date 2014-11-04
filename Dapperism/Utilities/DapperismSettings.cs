@@ -4,23 +4,21 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Dapperism.Attributes;
 using Dapperism.Entities;
 using Dapperism.Enums;
-using Dapperism.Utilities;
 using Fasterflect;
 
-namespace Dapperism.DataAccess
+namespace Dapperism.Utilities
 {
     public static class DapperismSettings
     {
-        private static void GetInfo(Type type)
+        internal static EntityAttributes GetInfo(Type type)
         {
             var typeFullName = type.FullName;
 
-            if (CacheManager.Instance.Contains(typeFullName)) return;
+            if (CacheManager.Instance.Contains(typeFullName))
+                return CacheManager.Instance[typeFullName] as EntityAttributes;
 
             var allAttr = type.Attributes().ToList();
 
@@ -202,6 +200,7 @@ namespace Dapperism.DataAccess
                 HaveAutoNumber = haveAutoNum
             };
             CacheManager.Instance[typeFullName] = ea;
+            return ea;
         }
         /*public static void WarmingUp(params string[] assemblyPaths)
         {
@@ -223,7 +222,7 @@ namespace Dapperism.DataAccess
         }*/
 
         public static void WarmingUp()
-        {            
+        {
             var path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             if (path == null) return;
             var di = new DirectoryInfo(path);
@@ -232,13 +231,16 @@ namespace Dapperism.DataAccess
             var fileInfos = dlls.Union(exes).ToList();
             foreach (var fi in fileInfos)
             {
-                var types = Assembly.LoadFrom(fi.FullName).GetTypes().Where(x => x.GetInterfaces().Contains(typeof(IEntity))).ToList();
+                var types =
+                    Assembly.LoadFrom(fi.FullName)
+                        .GetTypes()
+                        .Where(
+                            x =>
+                                x.GetInterfaces().Contains(typeof(IEntity)) &&
+                                !x.FullName.Contains("Dapperism.Entities.Entity"))
+                        .ToList();
                 foreach (var type in types)
-                {
-                    var status = type.FullName.Contains("Dapperism.Entities.Entity");
-                    if (status) continue;
                     GetInfo(type);
-                }
             }
         }
     }
