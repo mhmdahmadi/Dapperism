@@ -64,6 +64,7 @@
     <Compile Include="Attributes\SelectAllSpNameAttribute.cs" />
     <Compile Include="Attributes\ValidationModeAttribute.cs" />
     <Compile Include="DataAccess\IRepository.cs" />
+    <Compile Include="Enums\MethodType.cs" />
     <Compile Include="Utilities\DapperismSettings.cs" />
     <Compile Include="Entities\DynamicParameters.cs" />
     <Compile Include="Enums\FunctionType.cs" />
@@ -93,7 +94,6 @@
     <Compile Include="Enums\AutoNumber.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Enums\FilterOperation.cs" />
-    <Compile Include="Query\FilterQuery2.cs" />
     <Compile Include="Query\FilterQuery.cs" />
     <Compile Include="Utilities\CacheManager.cs" />
     <Compile Include="Utilities\DateTimeExt.cs" />
@@ -103,6 +103,7 @@
     <Compile Include="Utilities\PersianDateTime.cs" />
     <Compile Include="Utilities\PropertyCallAdapterProvider.cs" />
     <Compile Include="Utilities\ReflectionManager.cs" />
+    <Compile Include="Utilities\StringExt.cs" />
     <Compile Include="Utilities\TimeSpanExt.cs" />
     <Compile Include="Utilities\TypeMapperExt.cs" />
   </ItemGroup>

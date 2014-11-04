@@ -1,18 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Globalization;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Net.WebSockets;
-using System.Reflection;
-using System.Reflection.Emit;
-using Dapperism.Attributes;
-using Dapperism.DataAccess;
-using Dapperism.Enums;
 using Dapperism.Utilities;
-using Fasterflect;
 
 namespace Dapperism.Entities
 {
@@ -44,7 +33,7 @@ namespace Dapperism.Entities
                 {
                 }
 
-                obj[i] = "'" + value + "'";
+                obj[i] = "'" + value.ToEnglishNumber().FixArabicChars() + "'";
                 i++;
             }
             return obj;
@@ -85,8 +74,8 @@ namespace Dapperism.Entities
                     PropertyName = entityInfo.PropertyName,
                     ParameterType = entityInfo.ParameterType,
                     ParameterDirection = entityInfo.ParameterDirection,
-                    Value = value,
-                    FormattedValue = "'" + value + "'"
+                    Value = value.ToEnglishNumber().FixArabicChars(),
+                    FormattedValue = "'" + value.ToEnglishNumber().FixArabicChars() + "'"
                 });
 
                 i++;

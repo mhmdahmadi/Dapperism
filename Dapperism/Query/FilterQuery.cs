@@ -9,14 +9,11 @@ namespace Dapperism.Query
 {
     public class FilterQuery<TEntity> where TEntity : class, IEntity, new()
     {
-        private string _tableName = "";
-        private string _schemaName = "dbo";
+        private string _tableName;
+        private string _schemaName;
         private bool _isDistinct;
         private string _selectCol = "";
         private string _qText = "";
-        private bool _allAnd;
-        private bool _allOr;
-        private bool _allNot;
         internal string CreateQuery()
         {
             var key = typeof(TEntity).FullName.Trim();
@@ -65,35 +62,36 @@ namespace Dapperism.Query
             }
         }
 
-        public FilterQuery<TEntity> And(bool forAll = false)
+        public FilterQuery<TEntity> And
         {
-            _allAnd = forAll;
-            _allOr = !forAll;
-            _qText += " AND ";
-            return this;
+            get
+            {
+                _qText += " AND ";
+                return this;
+            }
         }
 
-        public FilterQuery<TEntity> Or(bool forAll = false)
+        public FilterQuery<TEntity> Or
         {
-            _allAnd = !forAll;
-            _allOr = forAll;
-            _qText += " OR ";
-            return this;
+            get
+            {
+                _qText += " OR ";
+                return this;
+            }
         }
 
-        public FilterQuery<TEntity> Not(bool forAll = false)
+        public FilterQuery<TEntity> Not
         {
-            _allOr = forAll;
-            _qText += " NOT ";
-            return this;
+            get
+            {
+                _qText += " NOT ";
+                return this;
+            }
         }
 
         public FilterQuery<TEntity> Where(Expression<Func<TEntity, object>> field, FilterOperation filterOperation, object value)
         {
             var columnName = field.GetMemberName();
-            /*var key = typeof(TEntity).FullName.Trim() + "." + name.Trim();
-            var data = EntityAnalyser<TEntity>.GetInfo();
-            var type = data.NotSeparatedInfo[key].PropertyType;*/
 
             switch (filterOperation)
             {
@@ -221,40 +219,77 @@ namespace Dapperism.Query
                 case FilterOperation.In:
                     _qText += string.Format("({0} {1} ({2}))", columnName, "IN", value);
                     break;
-
-
-
-
-
-
-
                 case FilterOperation.MultipleLike:
+                    var value2 = value as string[];
+                    if (value2 != null && value2.Any())
+                    {
+                        var v = "LIKE N'" + value2.Aggregate((a, b) => a + "%" + b) + "'";
+                        _qText += string.Format("({0} {1})", columnName, v);
+                    }
                     break;
+
                 case FilterOperation.MultipleTotalLike:
+                    var strings2 = value as string[];
+                    if (strings2 != null && strings2.Any())
+                    {
+                        var v = "LIKE N'%" + strings2.Aggregate((a, b) => a + "%" + b) + "%'";
+                        _qText += string.Format("({0} {1})", columnName, v);
+                    }
                     break;
+
                 case FilterOperation.MultipleStartLike:
+                    var value3 = value as string[];
+                    if (value3 != null && value3.Any())
+                    {
+                        var v = "LIKE N'%" + value3.Aggregate((a, b) => a + "%" + b) + "'";
+                        _qText += string.Format("({0} {1})", columnName, v);
+                    }
                     break;
+
                 case FilterOperation.MultipleEndLike:
+                    var strings3 = value as string[];
+                    if (strings3 != null && strings3.Any())
+                    {
+                        var v = "LIKE N'" + strings3.Aggregate((a, b) => a + "%" + b) + "%'";
+                        _qText += string.Format("({0} {1})", columnName, v);
+                    }
                     break;
-                case FilterOperation.NotMultipleLike:
-                    break;
+
                 case FilterOperation.NotMultipleTotalLike:
+                    var strings = value as string[];
+                    if (strings != null && strings.Any())
+                    {
+                        var v = "NOT LIKE N'%" + strings.Aggregate((a, b) => a + "%" + b) + "%'";
+                        _qText += string.Format("({0} {1})", columnName, v);
+                    }
                     break;
+
+                case FilterOperation.NotMultipleLike:
+                    var value4 = value as string[];
+                    if (value4 != null && value4.Any())
+                    {
+                        var v = "NOT LIKE N'" + value4.Aggregate((a, b) => a + "%" + b) + "'";
+                        _qText += string.Format("({0} {1})", columnName, v);
+                    }
+                    break;
+
                 case FilterOperation.NotMultipleStartLike:
+                    var strings1 = value as string[];
+                    if (strings1 != null && strings1.Any())
+                    {
+                        var v = "NOT LIKE N'%" + strings1.Aggregate((a, b) => a + "%" + b) + "'";
+                        _qText += string.Format("({0} {1})", columnName, v);
+                    }
                     break;
+
                 case FilterOperation.NotMultipleEndLike:
+                    var value1 = value as string[];
+                    if (value1 != null && value1.Any())
+                    {
+                        var v = "NOT LIKE N'" + value1.Aggregate((a, b) => a + "%" + b) + "%'";
+                        _qText += string.Format("({0} {1})", columnName, v);
+                    }
                     break;
-
-
-
-
-
-
-
-
-
-
-
 
                 default:
                     throw new ArgumentOutOfRangeException("filterOperation");

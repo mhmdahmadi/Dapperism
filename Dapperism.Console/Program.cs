@@ -21,21 +21,23 @@ namespace Dapperism.Console
 
             var rep = new Repository<Order>();
 
+            var st2 = new Stopwatch();
+            st2.Start();
+            var lst2 = rep.GetAll(9, 45);
+            st2.Stop();
 
+            var st11 = new Stopwatch();
+            st11.Start();
             var query = new FilterQuery<Order>()
-                .Begin
-                .Where(x => x.OrderId, FilterOperation.Equal, 10252)
-                .Or()
-                .Where(x => x.OrderDate, FilterOperation.Equal, new PersianDateTime(1377, 01, 07))
-                .End
+                .Where(x => x.ShipVia, FilterOperation.GreaterThanEqual, 2)
                 .Select();
-
-
             var aaa = rep.GetByFilter(query);
+            st11.Stop();
 
 
 
-            /*var st1 = new Stopwatch();
+
+            var st1 = new Stopwatch();
             st1.Start();
             var lst = rep.GetAll(4, 41, selectClause: new[]
             {
@@ -43,10 +45,7 @@ namespace Dapperism.Console
             });
             st1.Stop();
 
-            var st2 = new Stopwatch();
-            st2.Start();
-            var lst2 = rep.GetAll(9, 45);
-            st2.Stop();
+
 
             var st3 = new Stopwatch();
             st3.Start();
@@ -163,8 +162,9 @@ namespace Dapperism.Console
             var t8 = st8.ElapsedMilliseconds;
             var t9 = st9.ElapsedMilliseconds;
             var t10 = st10.ElapsedMilliseconds;
+            var t11 = st11.ElapsedMilliseconds;
 
-            var all = t1 + t2 + t3 + t4 + t5 + t6 + t7 + t8 + t9 + t10;*/
+            var all = t1 + t2 + t3 + t4 + t5 + t6 + t7 + t8 + t9 + t10 + t11;
         }
     }
 }
