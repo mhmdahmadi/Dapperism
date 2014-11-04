@@ -28,12 +28,19 @@ namespace Dapperism.Entities
                 try
                 {
                     value = field.PropertyType == typeof(DateTime) ? ((DateTime)field.GetValue(entity)).ToString(new CultureInfo("en-US")) : field.GetValue(entity).ToString();
+                    var arab = DapperismSettings.IsArabicLetters;
+                    var pnum = DapperismSettings.IsPersianNums;
+
+                    if (arab)
+                        value = value.FixArabicChars();
+                    if (pnum)
+                        value = value.ToEnglishNumber();
                 }
                 catch
                 {
                 }
 
-                obj[i] = "'" + value.ToEnglishNumber().FixArabicChars() + "'";
+                obj[i] = "'" + value + "'";
                 i++;
             }
             return obj;
@@ -57,6 +64,14 @@ namespace Dapperism.Entities
                 try
                 {
                     value = field.PropertyType == typeof(DateTime) ? ((DateTime)field.GetValue(entity)).ToString(new CultureInfo("en-US")) : field.GetValue(entity).ToString();
+
+                    var arab = DapperismSettings.IsArabicLetters;
+                    var pnum = DapperismSettings.IsPersianNums;
+
+                    if (arab)
+                        value = value.FixArabicChars();
+                    if (pnum)
+                        value = value.ToEnglishNumber();
                 }
                 catch
                 {
@@ -74,8 +89,8 @@ namespace Dapperism.Entities
                     PropertyName = entityInfo.PropertyName,
                     ParameterType = entityInfo.ParameterType,
                     ParameterDirection = entityInfo.ParameterDirection,
-                    Value = value.ToEnglishNumber().FixArabicChars(),
-                    FormattedValue = "'" + value.ToEnglishNumber().FixArabicChars() + "'"
+                    Value = value,
+                    FormattedValue = "'" + value + "'"
                 });
 
                 i++;

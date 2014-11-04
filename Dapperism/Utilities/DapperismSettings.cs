@@ -221,6 +221,19 @@ namespace Dapperism.Utilities
             }
         }*/
 
+        internal static bool IsArabicLetters = false;
+        internal static bool IsPersianNums = false;
+
+        public static void PreventArabicLetters()
+        {
+            IsArabicLetters = true;
+        }
+
+        public static void PreventPersianNumbers()
+        {
+            IsPersianNums = true;
+        }
+
         public static void WarmingUp()
         {
             var path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);

@@ -12,6 +12,8 @@ namespace Dapperism.Console
         static void Main(string[] args)
         {
             DapperismSettings.WarmingUp();
+            DapperismSettings.PreventArabicLetters();
+            DapperismSettings.PreventPersianNumbers();
 
             var rep = new Repository<Order>();
 
