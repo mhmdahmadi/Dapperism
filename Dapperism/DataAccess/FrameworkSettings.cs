@@ -1,30 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Globalization;
+using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Net.WebSockets;
 using System.Reflection;
-using System.Reflection.Emit;
+using System.Text;
+using System.Threading.Tasks;
 using Dapperism.Attributes;
+using Dapperism.Entities;
 using Dapperism.Enums;
 using Dapperism.Utilities;
 using Fasterflect;
 
-namespace Dapperism.Entities
+namespace Dapperism.DataAccess
 {
-    internal static class EntityAnalyser<TEntity>
-         where TEntity : class ,IEntity, new()
+    public static class FrameworkSettings
     {
-        internal static EntityAttributes GetInfo()
+        private static void GetInfo(Type type)
         {
-            var type = typeof(TEntity);
             var typeFullName = type.FullName;
 
-            if (CacheManager.Instance.Contains(typeFullName))
-                return CacheManager.Instance[typeFullName] as EntityAttributes;
+            if (CacheManager.Instance.Contains(typeFullName)) return;
 
             var allAttr = type.Attributes().ToList();
 
@@ -205,77 +201,45 @@ namespace Dapperism.Entities
                 DeleteStatement = delSt,
                 HaveAutoNumber = haveAutoNum
             };
-
-
             CacheManager.Instance[typeFullName] = ea;
-            return ea;
+        }
+        public static void WarmingUp(params string[] assemblyPaths)
+        {
+            if (assemblyPaths == null || !assemblyPaths.Any()) return;
+            foreach (var assemblyPath in assemblyPaths)
+            {
+                var types =
+                    Assembly.LoadFrom(assemblyPath)
+                        .GetTypes()
+                        .Where(x => x.GetInterfaces().Contains(typeof (IEntity)))
+                        .ToList();
+                foreach (var type in types)
+                {
+                    var status = type.FullName.Contains("Dapperism.Entities.Entity");
+                    if (status) continue;
+                    GetInfo(type);
+                }
+            }
         }
 
-        internal static object[] GetValues(TEntity entity)
-        {
-            var info = GetInfo();
-            var props = info.NotSeparated;
-            var obj = new object[props.Count];
-            int i = 0;
-            foreach (var field in props)
+        public static void WarmingUp()
+        {            
+            var path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            if (path == null) return;
+            var di = new DirectoryInfo(path);
+            FileInfo[] dlls = di.GetFiles("*.dll");
+            FileInfo[] exes = di.GetFiles("*.exe");
+            var fileInfos = dlls.Union(exes).ToList();
+            foreach (var fi in fileInfos)
             {
-                var value = "";
-                try
+                var types = Assembly.LoadFrom(fi.FullName).GetTypes().Where(x => x.GetInterfaces().Contains(typeof(IEntity))).ToList();
+                foreach (var type in types)
                 {
-                    value = field.PropertyType == typeof(DateTime) ? ((DateTime)field.GetValue(entity)).ToString(new CultureInfo("en-US")) : field.GetValue(entity).ToString();
+                    var status = type.FullName.Contains("Dapperism.Entities.Entity");
+                    if (status) continue;
+                    GetInfo(type);
                 }
-                catch
-                {
-                }
-
-                obj[i] = "'" + value + "'";
-                i++;
             }
-            return obj;
-        }
-
-        internal static List<EntityMap> GetData(TEntity entity)
-        {
-            var info = GetInfo();
-            var props = info.NotSeparated;
-            var lst = new List<EntityMap>();
-            lst.Clear();
-            int i = 0;
-            var insertdps = new Dapper.DynamicParameters();
-            foreach (var field in props)
-            {
-                var key = entity.GetType().FullName.Trim() + "." + field.Name.Trim();
-                var entityInfo = info.NotSeparatedInfo[key];
-                //var fp = new FastProperty(field);
-                //var value = field.PropertyType == typeof(DateTime) ? ((DateTime)fp.Get(entity)).ToString(new CultureInfo("en-US")) : fp.Get(entity).ToString();
-                var value = "";
-                try
-                {
-                    value = field.PropertyType == typeof(DateTime) ? ((DateTime)field.GetValue(entity)).ToString(new CultureInfo("en-US")) : field.GetValue(entity).ToString();
-                }
-                catch
-                {
-                }
-
-                lst.Add(new EntityMap()
-                {
-                    AutoNumber = entityInfo.AutoNumber,
-                    ColumnName = entityInfo.ColumnName,
-                    ForeignKeyPropertyName = entityInfo.ForeignKeyPropertyName,
-                    IsForeignKey = entityInfo.IsForeignKey,
-                    IsSpCudParameter = entityInfo.IsSpCudParameter,
-                    SpParamName = entityInfo.SpParamName.Contains("@") ? entityInfo.SpParamName : "@" + entityInfo.SpParamName,
-                    IsViewColumn = entityInfo.IsViewColumn,
-                    PropertyName = entityInfo.PropertyName,
-                    ParameterType = entityInfo.ParameterType,
-                    ParameterDirection = entityInfo.ParameterDirection,
-                    Value = value,
-                    FormattedValue = "'" + value + "'"
-                });
-
-                i++;
-            }
-            return lst;
         }
     }
 }

@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Dapperism.DataAccess;
+using Dapperism.Entities;
 using Dapperism.Utilities;
 
 namespace Dapperism.Console
@@ -13,6 +15,8 @@ namespace Dapperism.Console
     {
         static void Main(string[] args)
         {
+            FrameworkSettings.WarmingUp();
+
             var rep = new Repository<Order>();
             var st1 = new Stopwatch();
             st1.Start();
@@ -44,7 +48,7 @@ namespace Dapperism.Console
             var lst6 = rep.GetAll();
             st6.Stop();
 
-            
+
             var st7 = new Stopwatch();
             st7.Start();
             var lst7 = rep.Insert(new Order()
@@ -70,19 +74,19 @@ namespace Dapperism.Console
             st8.Start();
             var lst8 = rep.InsertOrUpdate(new Order()
             {
-                OrderId = 11081,
+                OrderId = 11190,
                 CustomerId = "BONAP",
                 EmployeeId = 8,
                 ShippedDate = DateTime.Now,
                 Freight = 12,
                 OrderDate = DateTime.Now,
                 RequiredDate = DateTime.Now,
-                ShipAddress = "ooooo",
-                ShipCity = "ooooo",
-                ShipCountry = "ooooo",
-                ShipName = "ooooo",
-                ShipPostalCode = "00000",
-                ShipRegion = "oooooo",
+                ShipAddress = "x",
+                ShipCity = "x",
+                ShipCountry = "x",
+                ShipName = "x",
+                ShipPostalCode = "7",
+                ShipRegion = "x",
                 ShipVia = 2
             });
             st8.Stop();
@@ -112,7 +116,7 @@ namespace Dapperism.Console
             st10.Start();
             var lst10 = rep.Insert(new Order()
             {
-                OrderId = 11080,
+                OrderId = 11190,
                 CustomerId = "BONAP",
                 EmployeeId = 8,
                 ShippedDate = DateTime.Now,
@@ -129,7 +133,7 @@ namespace Dapperism.Console
             });
             st10.Stop();
 
-
+            var lstt = Assembly.GetExecutingAssembly().GetTypes().Where(x=>x.GetInterfaces().Contains(typeof(IEntity))).ToList();
 
             var t1 = st1.ElapsedMilliseconds;
             var t2 = st2.ElapsedMilliseconds;
@@ -142,7 +146,6 @@ namespace Dapperism.Console
             var t9 = st9.ElapsedMilliseconds;
             var t10 = st10.ElapsedMilliseconds;
 
-            var s = CacheManager.Instance.Size;
         }
     }
 }
