@@ -32,6 +32,7 @@ namespace Dapperism.Entities
             var props = info.NotSeparated;
             var obj = new object[props.Count];
             int i = 0;
+
             foreach (var field in props)
             {
                 var value = "";

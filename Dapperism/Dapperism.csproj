@@ -101,6 +101,7 @@
     <Compile Include="Utilities\ObjectExt.cs" />
     <Compile Include="Utilities\PagingExt.cs" />
     <Compile Include="Utilities\PersianDateTime.cs" />
+    <Compile Include="Utilities\PropertyCallAdapterProvider.cs" />
     <Compile Include="Utilities\ReflectionManager.cs" />
     <Compile Include="Utilities\TimeSpanExt.cs" />
     <Compile Include="Utilities\TypeMapperExt.cs" />
