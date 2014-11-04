@@ -13,7 +13,7 @@ using DynamicParameters = Dapper.DynamicParameters;
 
 namespace Dapperism.DataAccess
 {
-    public sealed class Repository<TEntity> /*: IRepository<TEntity>*/ where TEntity : class, IEntity, new()
+    public sealed class Repository<TEntity> : IRepository<TEntity> where TEntity : class, IEntity, new()
     {
         private IDbConnection _dbConnection;
         private DbProviderFactory _providerFactory;
