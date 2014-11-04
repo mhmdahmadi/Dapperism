@@ -24,10 +24,9 @@ namespace Dapperism.Entities
 
             foreach (var field in props)
             {
-                var value = "";
                 try
                 {
-                    value = field.PropertyType == typeof(DateTime) ? ((DateTime)field.GetValue(entity)).ToString(new CultureInfo("en-US")) : field.GetValue(entity).ToString();
+                    var value = field.PropertyType == typeof(DateTime) ? ((DateTime)field.GetValue(entity)).ToString(new CultureInfo("en-US")) : field.GetValue(entity).ToString();
                     var arab = DapperismSettings.IsArabicLetters;
                     var pnum = DapperismSettings.IsPersianNums;
 
@@ -35,12 +34,11 @@ namespace Dapperism.Entities
                         value = value.FixArabicChars();
                     if (pnum)
                         value = value.ToEnglishNumber();
+                    obj[i] = "'" + value + "'";
                 }
                 catch
                 {
                 }
-
-                obj[i] = "'" + value + "'";
                 i++;
             }
             return obj;
@@ -52,18 +50,16 @@ namespace Dapperism.Entities
             var props = info.NotSeparated;
             var lst = new List<EntityMap>();
             lst.Clear();
-            int i = 0;
-            var insertdps = new Dapper.DynamicParameters();
+            var i = 0;
             foreach (var field in props)
             {
                 var key = entity.GetType().FullName.Trim() + "." + field.Name.Trim();
                 var entityInfo = info.NotSeparatedInfo[key];
                 //var fp = new FastProperty(field);
                 //var value = field.PropertyType == typeof(DateTime) ? ((DateTime)fp.Get(entity)).ToString(new CultureInfo("en-US")) : fp.Get(entity).ToString();
-                var value = "";
                 try
                 {
-                    value = field.PropertyType == typeof(DateTime) ? ((DateTime)field.GetValue(entity)).ToString(new CultureInfo("en-US")) : field.GetValue(entity).ToString();
+                    var value = field.PropertyType == typeof(DateTime) ? ((DateTime)field.GetValue(entity)).ToString(new CultureInfo("en-US")) : field.GetValue(entity).ToString();
 
                     var arab = DapperismSettings.IsArabicLetters;
                     var pnum = DapperismSettings.IsPersianNums;
@@ -72,27 +68,26 @@ namespace Dapperism.Entities
                         value = value.FixArabicChars();
                     if (pnum)
                         value = value.ToEnglishNumber();
+
+                    lst.Add(new EntityMap()
+                    {
+                        AutoNumber = entityInfo.AutoNumber,
+                        ColumnName = entityInfo.ColumnName,
+                        ForeignKeyPropertyName = entityInfo.ForeignKeyPropertyName,
+                        IsForeignKey = entityInfo.IsForeignKey,
+                        IsSpCudParameter = entityInfo.IsSpCudParameter,
+                        SpParamName = entityInfo.SpParamName.Contains("@") ? entityInfo.SpParamName : "@" + entityInfo.SpParamName,
+                        IsViewColumn = entityInfo.IsViewColumn,
+                        PropertyName = entityInfo.PropertyName,
+                        ParameterType = entityInfo.ParameterType,
+                        ParameterDirection = entityInfo.ParameterDirection,
+                        Value = value,
+                        FormattedValue = "'" + value + "'"
+                    });
                 }
                 catch
                 {
                 }
-
-                lst.Add(new EntityMap()
-                {
-                    AutoNumber = entityInfo.AutoNumber,
-                    ColumnName = entityInfo.ColumnName,
-                    ForeignKeyPropertyName = entityInfo.ForeignKeyPropertyName,
-                    IsForeignKey = entityInfo.IsForeignKey,
-                    IsSpCudParameter = entityInfo.IsSpCudParameter,
-                    SpParamName = entityInfo.SpParamName.Contains("@") ? entityInfo.SpParamName : "@" + entityInfo.SpParamName,
-                    IsViewColumn = entityInfo.IsViewColumn,
-                    PropertyName = entityInfo.PropertyName,
-                    ParameterType = entityInfo.ParameterType,
-                    ParameterDirection = entityInfo.ParameterDirection,
-                    Value = value,
-                    FormattedValue = "'" + value + "'"
-                });
-
                 i++;
             }
             return lst;
