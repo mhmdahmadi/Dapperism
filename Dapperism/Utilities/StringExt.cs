@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Dapperism.Utilities
 {
-   public static class StringExt
+    internal static class StringExt
     {
-       public static string ToEnglishNumber(this string input)
+       internal static string ToEnglishNumber(this string input)
        {
            if (input.Trim() == "") return "";
            input = input.Replace("۰", "0");
@@ -24,7 +24,7 @@ namespace Dapperism.Utilities
            return input;
        }
 
-       public static string FixArabicChars(this string value)
+       internal static string FixArabicChars(this string value)
        {
            return value.Replace("ك", "ک").Replace("ي", "ی").Replace("ة", "ه");
        }
