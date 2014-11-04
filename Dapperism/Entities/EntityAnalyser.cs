@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Reflection;
 using Dapperism.Attributes;
 using Dapperism.Enums;
@@ -51,10 +52,11 @@ namespace Dapperism.Entities
 
 
             var rOnlyAttribute = allAttr.FirstOrDefault(x => x is RetrieveOnlyAttribute) as RetrieveOnlyAttribute;
-            var rOnly = sByIdAttribute != null;
+            var rOnly = rOnlyAttribute != null;
 
             var props = type.Properties(Flags.Instance | Flags.DeclaredOnly | Flags.Public);
             var notSeparated = props.Where(x => x.Attribute<SeparatedAttribute>() == null).ToList();
+
             var propNames = notSeparated.Select(x => x.Name).ToArray();
 
             var dic = new Dictionary<string, EntityInfo>();
@@ -101,8 +103,6 @@ namespace Dapperism.Entities
 
             }
 
-
-
             var anc = dic.Values.Count(x => x.AutoNumber == 1);
             if (anc > 1)
                 throw new Exception("Each entity can only have an AutoNumber.Yes property");
@@ -111,6 +111,16 @@ namespace Dapperism.Entities
             if (an == 0)
                 throw new Exception("Each entity must have a PrimaryKey attribute at least");
 
+
+            var cols = dic.Values.Select(x => x.ColumnName).ToList();
+            var dicNum = new Dictionary<string, string>();
+            for (int i = 0; i < cols.Count(); i++)
+            {
+                dicNum.Add(cols[i], "{" + i + "}");
+            }
+
+
+            var haveAutoNum = anc == 1;
 
             var cMode = CascadeMode.Continue;
             var vMode = allAttr.FirstOrDefault(x => x is ValidationModeAttribute) as ValidationModeAttribute;
@@ -125,15 +135,16 @@ namespace Dapperism.Entities
 
             var stv = string.Format("{0}.{1}", schemaName, (string.IsNullOrEmpty(viewName) ? tableName : viewName));
 
-            var whereSt = lstPk.Select(x => x.Item1).Aggregate("", (current, ws) => current + string.Format("[{0}] = ${0}$", ws)).Replace("$[", "$ , [");
+            var whereSt = lstPk.Select(x => x.Item1)
+                .Aggregate("", (current, ws) => current + string.Format("[{0}] = {1}", ws, dicNum[ws])).Replace("}[", "} , [");
 
             var fieldsUpdate =
                 dic.Where(x => x.Value.AutoNumber == -1 && !x.Value.IsViewColumn).Select(x => x.Value.ColumnName);
 
             var setStr =
                 fieldsUpdate.Aggregate("",
-                    (current, colName) => current + ("[" + colName + "] = $" + colName + "$"))
-                    .Replace("$[", "$ , [");
+                    (current, colName) => current + ("[" + colName + "] = " + dicNum[colName]))
+            .Replace("}[", "} , [");
 
             var upSt = string.Format("UPDATE {0}.{1} SET {2} WHERE {3}", schemaName, tableName, setStr, whereSt);
 
@@ -145,13 +156,14 @@ namespace Dapperism.Entities
                 .Select(x => x.Value.ColumnName).ToList();
 
             var fieldsInsert = string.Format("[{0}]", fIns.Aggregate((a, b) => a + "] , [" + b));
-            var valuesInsert = string.Format("${0}$", fIns.Aggregate((a, b) => a + "$ , $" + b));
+
+            var valuesInsert = fIns.Aggregate("", (current, g) => current + dicNum[g]).Replace("}{", "} , {");
 
             var insStr = string.Format("INSERT INTO {0}.{1} ({2}) VALUES ({3}) ", schemaName,
                 tableName, fieldsInsert, valuesInsert);
 
             string insRetStr;
-            var pka = dic.FirstOrDefault(x => x.Value.AutoNumber == (int) AutoNumber.Yes && !x.Value.IsViewColumn).Value;
+            var pka = dic.FirstOrDefault(x => x.Value.AutoNumber == (int)AutoNumber.Yes && !x.Value.IsViewColumn).Value;
             if (pka != null)
             {
                 var pkCol = pka.ColumnName;
@@ -188,13 +200,36 @@ namespace Dapperism.Entities
                 SelectByIdStatement = srIdSt,
                 InsertStatement = insStr,
                 InsertReturnStatement = insRetStr,
-                DeleteStatement = delSt
-
+                DeleteStatement = delSt,
+                HaveAutoNumber = haveAutoNum
             };
 
 
             CacheManager.Instance[typeFullName] = ea;
             return ea;
+        }
+
+        internal static object[] GetValues(TEntity entity)
+        {
+            var info = GetInfo();
+            var props = info.NotSeparated;
+            var obj = new object[props.Count];
+            int i = 0;
+            foreach (var field in props)
+            {
+                var value = "";
+                try
+                {
+                    value = field.PropertyType == typeof(DateTime) ? ((DateTime)field.GetValue(entity)).ToString(new CultureInfo("en-US")) : field.GetValue(entity).ToString();
+                }
+                catch
+                {
+                }
+
+                obj[i] = "'" + value + "'";
+                i++;
+            }
+            return obj;
         }
 
         internal static List<EntityMap> GetData(TEntity entity)
@@ -203,6 +238,8 @@ namespace Dapperism.Entities
             var props = info.NotSeparated;
             var lst = new List<EntityMap>();
             lst.Clear();
+            int i = 0;
+            var insertdps = new Dapper.DynamicParameters();
             foreach (var field in props)
             {
                 var key = entity.GetType().FullName.Trim() + "." + field.Name.Trim();
@@ -234,6 +271,8 @@ namespace Dapperism.Entities
                     Value = value,
                     FormattedValue = "'" + value + "'"
                 });
+
+                i++;
             }
             return lst;
         }

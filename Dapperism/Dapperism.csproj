@@ -96,6 +96,8 @@
     <Compile Include="Query\Predicate.cs" />
     <Compile Include="Utilities\CacheManager.cs" />
     <Compile Include="Utilities\DateTimeExt.cs" />
+    <Compile Include="Utilities\FastReplacer.cs" />
+    <Compile Include="Utilities\FastReplacerSnippet.cs" />
     <Compile Include="Utilities\LambdaExt.cs" />
     <Compile Include="Utilities\ObjectExt.cs" />
     <Compile Include="Utilities\PagingExt.cs" />

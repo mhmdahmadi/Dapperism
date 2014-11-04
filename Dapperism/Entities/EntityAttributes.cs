@@ -31,5 +31,7 @@ namespace Dapperism.Entities
         internal string WhereStatement { get; set; }
         internal List<Tuple<string, string, DbType>> PrimaryKeys { get; set; }
         internal string STVCombination { get; set; }
+        internal bool HaveAutoNumber { get; set; }
+        internal Dapper.DynamicParameters InsertSpParameters { get; set; }
     }
 }

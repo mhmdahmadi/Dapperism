@@ -7,7 +7,6 @@ using Dapperism.Utilities;
 namespace Dapperism.Console
 {
     [TableName("Orders")]
-    [RetrieveOnly]
     public class Order : Entity<Order>
     {
         [PrimaryKey(AutoNumber.Yes)]

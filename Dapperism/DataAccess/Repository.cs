@@ -12,7 +12,7 @@ using DynamicParameters = Dapper.DynamicParameters;
 
 namespace Dapperism.DataAccess
 {
-    public sealed class Repository<TEntity> : IRepository<TEntity> where TEntity : class, IEntity, new()
+    public sealed class Repository<TEntity> /*: IRepository<TEntity>*/ where TEntity : class, IEntity, new()
     {
         private IDbConnection _dbConnection;
         private DbProviderFactory _providerFactory;
@@ -110,6 +110,7 @@ namespace Dapperism.DataAccess
             transaction.Rollback();
             CloseDatabase();
         }
+
         public TEntity Insert(TEntity entity, IDbTransaction transaction = null)
         {
             if (entity == null) return null;
@@ -129,43 +130,39 @@ namespace Dapperism.DataAccess
                 var trans = transaction ?? BeginTransaction();
                 using (trans)
                 {
-                    var data = EntityAnalyser<TEntity>.GetData(entity);
-
-                    var fields =
-                        data.Where(x => x.AutoNumber != (int)AutoNumber.Yes && !x.IsViewColumn)
-                            .Select(x => x.ColumnName)
-                            .Aggregate((a, b) => a + "," + b);
-
-                    var values =
-                        data.Where(x => x.AutoNumber != (int)AutoNumber.Yes && !x.IsViewColumn)
-                            .Select(x => x.FormattedValue)
-                            .Aggregate((a, b) => a + "," + b);
-
-                    var colName = data.FirstOrDefault(x => x.AutoNumber == (int)AutoNumber.Yes && !x.IsViewColumn);
-                    var txt1 = string.Format("INSERT INTO {0}.{1} ({2}) VALUES ({3})", _entityAttributes.SchemaName,
-                        _entityAttributes.TableName, fields, values);
-                    TEntity result;
-                    if (colName != null)
-                    {
-                        var txt2 = string.Format("SELECT * FROM {0}.{1} WHERE {2} = SCOPE_IDENTITY() ",
-                            _entityAttributes.SchemaName, _entityAttributes.TableName, colName.ColumnName);
-                        var cmdText = (txt1 + " " + txt2).Trim();
-                        result =
-                            DbConnection.Query<TEntity>(cmdText, transaction: trans, commandType: CommandType.Text)
-                                .FirstOrDefault();
-                    }
-                    else
-                    {
-                        var r = DbConnection.Execute(txt1, transaction: trans, commandType: CommandType.Text);
-                        result = r >= 0 ? entity : null;
-                    }
+                    object[] obj = EntityAnalyser<TEntity>.GetValues(entity);
+                    var cmdText = _entityAttributes.HaveAutoNumber
+                        ? _entityAttributes.InsertReturnStatement
+                        : _entityAttributes.InsertStatement;
+                    var cmd = string.Format(cmdText, obj);
+                    var result =
+                        DbConnection.Query<TEntity>(cmd, transaction: trans, commandType: CommandType.Text)
+                            .FirstOrDefault();
                     if (transaction == null)
                         CommitTransaction(trans);
                     return result;
                 }
-
             }
         }
+        public void Delete(TEntity entity, IDbTransaction transaction = null)
+        {
+            if (entity == null) return;
+            if (_entityAttributes.RetrieveOnly)
+                return;
+            using (DbConnection)
+            {
+                var trans = transaction ?? BeginTransaction();
+                using (trans)
+                {
+                    object[] obj = EntityAnalyser<TEntity>.GetValues(entity);
+                    var cmd = string.Format(_entityAttributes.DeleteStatement, obj);
+                    DbConnection.Execute(cmd, transaction: trans, commandType: CommandType.Text);
+                    if (transaction == null)
+                        CommitTransaction(trans);
+                }
+            }
+        }
+
         public void Insert(IList<TEntity> entities, IDbTransaction transaction = null)
         {
             if (entities == null) return;
@@ -179,6 +176,9 @@ namespace Dapperism.DataAccess
                 var trans = transaction ?? BeginTransaction();
                 using (trans)
                 {
+                    var ins = _entityAttributes.HaveAutoNumber
+                       ? _entityAttributes.InsertReturnStatement
+                       : _entityAttributes.InsertStatement;
                     int i = 0;
                     foreach (var entity in entities)
                     {
@@ -196,23 +196,10 @@ namespace Dapperism.DataAccess
                             }
                         }
 
-
-                        var data = EntityAnalyser<TEntity>.GetData(entity);
-                        var fields =
-                            data.Where(x => x.AutoNumber != (int)AutoNumber.Yes && !x.IsViewColumn)
-                                .Select(x => x.ColumnName)
-                                .Aggregate((a, b) => a + "," + b);
-
-                        var values =
-                            data.Where(x => x.AutoNumber != (int)AutoNumber.Yes && !x.IsViewColumn)
-                                .Select(x => x.FormattedValue)
-                                .Aggregate((a, b) => a + "," + b);
-
-                        cmd[i] = string.Format("INSERT INTO {0}.{1} ({2}) VALUES ({3})", _entityAttributes.SchemaName,
-                            _entityAttributes.TableName, fields, values);
+                        object[] obj = EntityAnalyser<TEntity>.GetValues(entity);
+                        cmd[i] = string.Format(ins, obj);
                         i++;
                     }
-
                     var exeCmd = cmd.Aggregate((a, b) => a + " " + b);
                     DbConnection.Execute(exeCmd, transaction: trans, commandType: CommandType.Text);
                     if (transaction == null)
@@ -323,28 +310,8 @@ namespace Dapperism.DataAccess
                 var trans = transaction ?? BeginTransaction();
                 using (trans)
                 {
-                    var data = EntityAnalyser<TEntity>.GetData(entity);
-                    var ids =
-                        data.Where(
-                            x =>
-                                (x.AutoNumber == (int)AutoNumber.Yes || x.AutoNumber == (int)AutoNumber.No) &&
-                                !x.IsViewColumn);
-                    var fields = data.Where(x => x.AutoNumber == -1 && !x.IsViewColumn);
-
-                    var setStr =
-                        fields.Aggregate("",
-                            (current, dtoMap) => current + ("[" + dtoMap.ColumnName + "] = " + dtoMap.FormattedValue))
-                            .Replace("'[", "' , [");
-
-                    var whereStr =
-                        ids.Aggregate("",
-                            (current, dtoMap) =>
-                                current + ("[" + dtoMap.ColumnName + "] = " + dtoMap.FormattedValue + " "))
-                            .Replace("'[", "' AND [");
-
-                    var cmdText = string.Format("UPDATE {0}.{1} SET {2} WHERE {3}", _entityAttributes.SchemaName,
-                        _entityAttributes.TableName, setStr, whereStr.Trim());
-
+                    object[] obj = EntityAnalyser<TEntity>.GetValues(entity);
+                    var cmdText = string.Format(_entityAttributes.UpdateStatement, obj);
                     var r = DbConnection.Execute(cmdText, transaction: trans, commandType: CommandType.Text);
                     var result = r >= 0;
 
@@ -383,30 +350,9 @@ namespace Dapperism.DataAccess
                             }
                         }
 
-                        var data = EntityAnalyser<TEntity>.GetData(entity);
-                        var ids =
-                            data.Where(
-                                x =>
-                                    (x.AutoNumber == (int)AutoNumber.Yes || x.AutoNumber == (int)AutoNumber.No) &&
-                                    !x.IsViewColumn);
-                        var fields = data.Where(x => x.AutoNumber == -1 && !x.IsViewColumn);
-
-                        var setStr =
-                            fields.Aggregate("",
-                                (current, dtoMap) =>
-                                    current + ("[" + dtoMap.ColumnName + "] = " + dtoMap.FormattedValue))
-                                .Replace("'[", "' , [");
-
-                        var whereStr =
-                            ids.Aggregate("",
-                                (current, dtoMap) =>
-                                    current + ("[" + dtoMap.ColumnName + "] = " + dtoMap.FormattedValue + " "))
-                                .Replace("'[", "' AND [");
-
-                        cmd[i] = string.Format("UPDATE {0}.{1} SET {2} WHERE {3}", _entityAttributes.SchemaName,
-                            _entityAttributes.TableName, setStr, whereStr);
-
-
+                        object[] obj = EntityAnalyser<TEntity>.GetValues(entity);
+                        var cmdText = string.Format(_entityAttributes.UpdateStatement, obj);
+                        cmd[i] = cmdText;
                         i++;
                     }
                     var exeCmd = cmd.Aggregate((a, b) => a + " " + b);
@@ -491,32 +437,7 @@ namespace Dapperism.DataAccess
                 }
             }
         }
-        public void Delete(TEntity entity, IDbTransaction transaction = null)
-        {
-            if (entity == null) return;
-            if (_entityAttributes.RetrieveOnly)
-                return;
-            using (DbConnection)
-            {
-                var trans = transaction ?? BeginTransaction();
-                using (trans)
-                {
-                    var data = EntityAnalyser<TEntity>.GetData(entity);
-                    var ids = data.Where(x => x.AutoNumber != -1).ToList();
-                    var whereStr =
-                        ids.Aggregate("",
-                            (current, dtoMap) =>
-                                current + ("[" + dtoMap.ColumnName + "] = " + dtoMap.FormattedValue + " "))
-                            .Replace("'[", "' AND [");
 
-                    var cmdText = string.Format("DELETE FROM {0}.{1} WHERE {2}", _entityAttributes.SchemaName,
-                        _entityAttributes.TableName, whereStr.Trim());
-                    DbConnection.Execute(cmdText, transaction: trans, commandType: CommandType.Text);
-                    if (transaction == null)
-                        CommitTransaction(trans);
-                }
-            }
-        }
         public void Delete(IList<TEntity> entities, IDbTransaction transaction = null)
         {
             if (entities == null) return;
@@ -533,16 +454,10 @@ namespace Dapperism.DataAccess
                     int i = 0;
                     foreach (var entity in entities)
                     {
-                        var data = EntityAnalyser<TEntity>.GetData(entity);
-                        var ids = data.Where(x => x.AutoNumber != -1).ToList();
-                        var whereStr =
-                            ids.Aggregate("",
-                                (current, dtoMap) =>
-                                    current + ("[" + dtoMap.ColumnName + "] = " + dtoMap.FormattedValue + " "))
-                                .Replace("'[", "' AND [");
+                        object[] obj = EntityAnalyser<TEntity>.GetValues(entity);
+                        var cmdText = string.Format(_entityAttributes.UpdateStatement, obj);
 
-                        cmd[i] = string.Format("DELETE FROM {0}.{1} WHERE {2}", _entityAttributes.SchemaName,
-                            _entityAttributes.TableName, whereStr.Trim());
+                        cmd[i] = cmdText;
                         i++;
                     }
 
@@ -644,7 +559,7 @@ namespace Dapperism.DataAccess
                 var trans = transaction ?? BeginTransaction();
                 using (trans)
                 {
-                    var ids =  _entityAttributes.PrimaryKeys;
+                    var ids = _entityAttributes.PrimaryKeys;
                     string str = "";
 
                     if (ids.Count() != id.Count())
@@ -702,7 +617,7 @@ namespace Dapperism.DataAccess
                             order = string.Format("[{0}]", pagingOrderCols.Aggregate((a, b) => string.Format("{0} {2}] , [{1} {2}", a, b, isAscStr)));
                         else
                         {
-                            var pkLst =  _entityAttributes.PrimaryKeys.Select(x => x.Item1);
+                            var pkLst = _entityAttributes.PrimaryKeys.Select(x => x.Item1);
                             order =
                                 string.Format("[{0}]", pkLst.Aggregate((a, b) => string.Format("{0}] , [{1}", a, b)))
                                     .Replace("]", "] " + isAscStr);
@@ -748,7 +663,7 @@ namespace Dapperism.DataAccess
                 ? _entityAttributes.TableName
                 : _entityAttributes.ViewName;
 
-            var ids =  _entityAttributes.PrimaryKeys;
+            var ids = _entityAttributes.PrimaryKeys;
             string str = "";
 
             if (ids.Count() != id.Count())
@@ -780,7 +695,7 @@ namespace Dapperism.DataAccess
         public TEntity GetByIdWithSp(IDbTransaction transaction = null, params object[] id)
         {
             var spName = _entityAttributes.SelectByIdSpName;
-            var ids =  _entityAttributes.PrimaryKeys;
+            var ids = _entityAttributes.PrimaryKeys;
 
             if (ids.Count() != id.Count())
                 throw new Exception("Id`s count not matched");

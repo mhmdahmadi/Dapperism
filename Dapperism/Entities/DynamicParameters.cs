@@ -72,5 +72,12 @@ namespace Dapperism.Entities
             var dp = ToDapperParams();
             return dp.Get<T>(paramName);
         }
+
+
+        public static implicit operator Dapper.DynamicParameters(Dapperism.Entities.DynamicParameters dps)
+        {
+            var r = dps.ToDapperParams();
+            return r;
+        }
     }
 }
