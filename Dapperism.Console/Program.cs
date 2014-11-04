@@ -20,7 +20,10 @@ namespace Dapperism.Console
             var rep = new Repository<Order>();
             var st1 = new Stopwatch();
             st1.Start();
-            var lst = rep.GetAll(4, 25);
+            var lst = rep.GetAll(4, 41, selectClause: new[]
+            {
+                "OrderID", "ShipName"
+            });
             st1.Stop();
 
             var st2 = new Stopwatch();
@@ -133,7 +136,7 @@ namespace Dapperism.Console
             });
             st10.Stop();
 
-            var lstt = Assembly.GetExecutingAssembly().GetTypes().Where(x=>x.GetInterfaces().Contains(typeof(IEntity))).ToList();
+            var lstt = Assembly.GetExecutingAssembly().GetTypes().Where(x => x.GetInterfaces().Contains(typeof(IEntity))).ToList();
 
             var t1 = st1.ElapsedMilliseconds;
             var t2 = st2.ElapsedMilliseconds;
@@ -145,6 +148,8 @@ namespace Dapperism.Console
             var t8 = st8.ElapsedMilliseconds;
             var t9 = st9.ElapsedMilliseconds;
             var t10 = st10.ElapsedMilliseconds;
+
+            var all = t1 + t2 + t3 + t4 + t5 + t6 + t7 + t8 + t9 + t10;
         }
     }
 }

@@ -620,9 +620,13 @@ namespace Dapperism.DataAccess
             string isAscStr = isAsc ? " ASC " : " DESC ";
 
 
+
             var select = "*";
-            if (selectClause.Any())
+            if (selectClause.Any() && selectClause != null)
+            {
                 select = string.Format("[{0}]", selectClause.Aggregate((a, b) => string.Format("{0}] , [{1}", a, b)));
+                //select = select.Replace("[[", "[").Replace("]]", "]");
+            }
 
 
 

@@ -226,8 +226,8 @@ namespace Dapperism.Utilities
             var path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             if (path == null) return;
             var di = new DirectoryInfo(path);
-            FileInfo[] dlls = di.GetFiles("*.dll");
-            FileInfo[] exes = di.GetFiles("*.exe");
+            var dlls = di.GetFiles("*.dll");
+            var exes = di.GetFiles("*.exe");
             var fileInfos = dlls.Union(exes).ToList();
             foreach (var fi in fileInfos)
             {
