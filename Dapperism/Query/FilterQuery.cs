@@ -3,6 +3,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using Dapperism.Entities;
 using Dapperism.Enums;
+using Dapperism.Extensions.Extensions;
+using Dapperism.Extensions.Persian;
+using Dapperism.Extensions.Utilities;
 using Dapperism.Utilities;
 
 namespace Dapperism.Query

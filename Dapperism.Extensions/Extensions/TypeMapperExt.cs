@@ -3,17 +3,15 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Linq;
 
-namespace Dapperism.Utilities
+namespace Dapperism.Extensions.Extensions
 {
     public static class TypeMapperExt
     {
-       /* public static Type ToType(this DbType dbType)
+        public static Type ToType(this DbType dbType)
         {
-            var typeMap = new Dictionary<DbType, Type>();
-          
+            var typeMap = new Dictionary<DbType, Type>();          
             return typeMap[dbType];
-        }*/
-
+        }
 
         public static DbType ToDbType(this Type type)
         {

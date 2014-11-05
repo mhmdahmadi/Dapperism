@@ -65,7 +65,7 @@
     <Compile Include="Attributes\ValidationModeAttribute.cs" />
     <Compile Include="DataAccess\IRepository.cs" />
     <Compile Include="Enums\MethodType.cs" />
-    <Compile Include="Utilities\DapperismSettings.cs" />
+    <Compile Include="Settings\DapperismSettings.cs" />
     <Compile Include="Entities\DynamicParameters.cs" />
     <Compile Include="Enums\FunctionType.cs" />
     <Compile Include="Enums\CascadeMode.cs" />
@@ -95,17 +95,21 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Enums\FilterOperation.cs" />
     <Compile Include="Query\FilterQuery.cs" />
-    <Compile Include="Utilities\CacheManager.cs" />
     <Compile Include="Utilities\DateTimeExt.cs" />
-    <Compile Include="Utilities\LambdaExt.cs" />
     <Compile Include="Utilities\ObjectExt.cs" />
     <Compile Include="Utilities\PagingExt.cs" />
-    <Compile Include="Utilities\PersianDateTime.cs" />
     <Compile Include="Utilities\PropertyCallAdapterProvider.cs" />
-    <Compile Include="Utilities\ReflectionManager.cs" />
-    <Compile Include="Utilities\StringExt.cs" />
-    <Compile Include="Utilities\TimeSpanExt.cs" />
-    <Compile Include="Utilities\TypeMapperExt.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Dapperism.Extensions\Dapperism.Extensions.csproj">
+      <Project>{1ee0c0e0-0a9f-461a-8ae2-31c56c4e9afa}</Project>
+      <Name>Dapperism.Extensions</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

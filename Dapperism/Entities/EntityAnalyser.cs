@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using Dapperism.Utilities;
+using Dapperism.Extensions.Persian;
+using Dapperism.Settings;
 
 namespace Dapperism.Entities
 {
@@ -31,7 +32,7 @@ namespace Dapperism.Entities
                     var pnum = DapperismSettings.IsPersianNums;
 
                     if (arab)
-                        value = value.FixArabicChars();
+                        value = value.FixArabicLetters();
                     if (pnum)
                         value = value.ToEnglishNumber();
                     obj[i] = "'" + value + "'";
@@ -65,7 +66,7 @@ namespace Dapperism.Entities
                     var pnum = DapperismSettings.IsPersianNums;
 
                     if (arab)
-                        value = value.FixArabicChars();
+                        value = value.FixArabicLetters();
                     if (pnum)
                         value = value.ToEnglishNumber();
 

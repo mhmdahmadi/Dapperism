@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Dapperism.Utilities
+namespace Dapperism.Extensions.Utilities
 {
     public sealed class ReflectionManager
     {

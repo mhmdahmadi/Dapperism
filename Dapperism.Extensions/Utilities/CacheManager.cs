@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Runtime.Serialization.Formatters.Binary;
 
-namespace Dapperism.Utilities
+namespace Dapperism.Extensions.Utilities
 {
     public sealed class CacheManager
     {

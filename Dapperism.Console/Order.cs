@@ -2,6 +2,7 @@ using System;
 using Dapperism.Attributes;
 using Dapperism.Entities;
 using Dapperism.Enums;
+using Dapperism.Extensions.Persian;
 using Dapperism.Utilities;
 
 namespace Dapperism.Console

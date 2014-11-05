@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dapperism", "Dapperism\Dapp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dapperism.Console", "Dapperism.Console\Dapperism.Console.csproj", "{21912193-1F0B-45D0-802E-D88F7950EAC5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dapperism.Extensions", "Dapperism.Extensions\Dapperism.Extensions.csproj", "{1EE0C0E0-0A9F-461A-8AE2-31C56C4E9AFA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{21912193-1F0B-45D0-802E-D88F7950EAC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{21912193-1F0B-45D0-802E-D88F7950EAC5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{21912193-1F0B-45D0-802E-D88F7950EAC5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1EE0C0E0-0A9F-461A-8AE2-31C56C4E9AFA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1EE0C0E0-0A9F-461A-8AE2-31C56C4E9AFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1EE0C0E0-0A9F-461A-8AE2-31C56C4E9AFA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1EE0C0E0-0A9F-461A-8AE2-31C56C4E9AFA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

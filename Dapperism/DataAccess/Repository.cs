@@ -7,6 +7,8 @@ using System.Linq;
 using Dapper;
 using Dapperism.Entities;
 using Dapperism.Enums;
+using Dapperism.Extensions.Extensions;
+using Dapperism.Extensions.Utilities;
 using Dapperism.Query;
 using Dapperism.Utilities;
 using DynamicParameters = Dapper.DynamicParameters;

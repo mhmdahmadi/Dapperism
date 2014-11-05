@@ -7,9 +7,12 @@ using System.Reflection;
 using Dapperism.Attributes;
 using Dapperism.Entities;
 using Dapperism.Enums;
+using Dapperism.Extensions.Extensions;
+using Dapperism.Extensions.Utilities;
+using Dapperism.Utilities;
 using Fasterflect;
 
-namespace Dapperism.Utilities
+namespace Dapperism.Settings
 {
     public static class DapperismSettings
     {

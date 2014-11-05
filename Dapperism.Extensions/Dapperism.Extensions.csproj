@@ -4,17 +4,16 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{21912193-1F0B-45D0-802E-D88F7950EAC5}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <ProjectGuid>{1EE0C0E0-0A9F-461A-8AE2-31C56C4E9AFA}</ProjectGuid>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Dapperism.Console</RootNamespace>
-    <AssemblyName>Dapperism.Console</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <RootNamespace>Dapperism.Extensions</RootNamespace>
+    <AssemblyName>Dapperism.Extensions</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -22,21 +21,21 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data.Linq" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -44,43 +43,28 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Order.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="Cryptography\Crc32Algorithm.cs" />
+    <Compile Include="Extensions\CryptoExt.cs" />
+    <Compile Include="Cryptography\HashAlgoritms.cs" />
+    <Compile Include="Cryptography\RijndaelCrypto.cs" />
+    <Compile Include="Cryptography\TripleDesCrypto.cs" />
+    <Compile Include="Extensions\DataTableExt.cs" />
+    <Compile Include="Extensions\EnumExt.cs" />
+    <Compile Include="Extensions\GeneralExt.cs" />
+    <Compile Include="Extensions\LambdaExt.cs" />
+    <Compile Include="Extensions\StringExt.cs" />
+    <Compile Include="Extensions\TimerExt.cs" />
+    <Compile Include="Extensions\TimeSpanExt.cs" />
+    <Compile Include="Persian\HumanReadableInteger.cs" />
+    <Compile Include="WebForms\PageExt.cs" />
+    <Compile Include="Utilities\ReflectionManager.cs" />
+    <Compile Include="Extensions\TypeMapperExt.cs" />
+    <Compile Include="Persian\PersianDateTime.cs" />
+    <Compile Include="Persian\PersianStringExt.cs" />
+    <Compile Include="Utilities\CacheManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="Properties\Settings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>Settings.settings</DependentUpon>
-    </Compile>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
-    <None Include="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Dapperism.Extensions\Dapperism.Extensions.csproj">
-      <Project>{1ee0c0e0-0a9f-461a-8ae2-31c56c4e9afa}</Project>
-      <Name>Dapperism.Extensions</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Dapperism\Dapperism.csproj">
-      <Project>{60a3aae2-8801-4c79-b034-c5702f88cd1f}</Project>
-      <Name>Dapperism</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

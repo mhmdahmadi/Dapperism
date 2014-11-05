@@ -11,27 +11,23 @@ namespace Dapperism.Console
     {
         static void Main(string[] args)
         {
-            DapperismSettings.WarmingUp();
+            /*DapperismSettings.WarmingUp();
             DapperismSettings.PreventArabicLetters();
-            DapperismSettings.PreventPersianNumbers();
+            DapperismSettings.PreventPersianNumbers();*/
 
             var rep = new Repository<Order>();
+            var st11 = new Stopwatch();
+            st11.Start();
+            var query = new FilterQuery<Order>()             
+                .Select();
+            var aaa = rep.GetByFilter(query);
+            st11.Stop();
 
             var st2 = new Stopwatch();
             st2.Start();
             var lst2 = rep.GetAll(9, 45);
             st2.Stop();
 
-            var st11 = new Stopwatch();
-            st11.Start();
-            var query = new FilterQuery<Order>()
-                .Not
-                .Where(x => x.ShipVia, FilterOperation.GreaterThanEqual, 2)
-                .And
-                .Where(x => x.ShipName, FilterOperation.EndsWith, 'o')
-                .Select();
-            var aaa = rep.GetByFilter(query);
-            st11.Stop();
 
 
 

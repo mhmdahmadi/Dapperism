@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq.Expressions;
 
-namespace Dapperism.Utilities
+namespace Dapperism.Extensions.Extensions
 {
     public static class LambdaExt
     {
