@@ -95,45 +95,39 @@ namespace Dapperism.DataAccess
                 return _dbConnection.CreateCommand();
             }
         }*/
-
         private void OpenDatabase()
         {
             if (DbConnection.State == ConnectionState.Open) return;
             DbConnection.ConnectionString = ConnectionString;
             DbConnection.Open();
         }
-
         private void CloseDatabase()
         {
             if (DbConnection.State != ConnectionState.Closed)
                 DbConnection.Close();
         }
-
         public IDbTransaction BeginTransaction()
         {
             OpenDatabase();
             var trans = DbConnection.BeginTransaction();
             return trans;
         }
-
         public void CommitTransaction(IDbTransaction transaction)
         {
             transaction.Commit();
             CloseDatabase();
         }
-
         public void RollbackTransaction(IDbTransaction transaction)
         {
             transaction.Rollback();
             CloseDatabase();
         }
-
-        public TEntity Insert(TEntity entity, IDbTransaction transaction = null)
+        public TEntity Insert(TEntity entity, MethodType method = MethodType.Text, IDbTransaction transaction = null)
         {
             if (entity == null) return null;
 
             if (_entityAttributes.RetrieveOnly)
-                return null;
+                throw new Exception("Class is defined as [RetrieveOnly]");
 
             ValidationResults = null;
             if (!entity.IsValid())
@@ -142,211 +136,429 @@ namespace Dapperism.DataAccess
                 return null;
             }
 
-            using (DbConnection)
+            switch (method)
             {
-                var trans = transaction ?? BeginTransaction();
-                using (trans)
-                {
-                    object[] obj = EntityAnalyser<TEntity>.GetValues(entity);
-                    var cmdText = _entityAttributes.HaveAutoNumber
-                        ? _entityAttributes.InsertReturnStatement
-                        : _entityAttributes.InsertStatement;
-                    var cmd = string.Format(cmdText, obj);
-                    var result =
-                        DbConnection.Query<TEntity>(cmd, transaction: trans, commandType: CommandType.Text)
-                            .FirstOrDefault();
-                    if (transaction == null)
-                        CommitTransaction(trans);
-                    return result;
-                }
+                case MethodType.Text:
+
+                    using (DbConnection)
+                    {
+                        var trans = transaction ?? BeginTransaction();
+                        using (trans)
+                        {
+                            object[] obj = EntityAnalyser<TEntity>.GetValues(entity);
+                            var cmdText = _entityAttributes.HaveAutoNumber
+                                ? _entityAttributes.InsertReturnStatement
+                                : _entityAttributes.InsertStatement;
+                            var cmd = string.Format(cmdText, obj);
+                            var result =
+                                DbConnection.Query<TEntity>(cmd, transaction: trans, commandType: CommandType.Text)
+                                    .FirstOrDefault();
+                            if (transaction == null)
+                                CommitTransaction(trans);
+                            return result;
+                        }
+                    }
+                case MethodType.StoredProcedure:
+                    using (DbConnection)
+                    {
+                        var trans = transaction ?? BeginTransaction();
+                        using (trans)
+                        {
+                            TEntity result = entity;
+                            var data =
+                                EntityAnalyser<TEntity>.GetData(entity)
+                                    .Where(x => !x.IsViewColumn && x.IsSpCudParameter)
+                                    .ToList();
+                            var spName = _entityAttributes.InsertSpName;
+
+                            var param = new DynamicParameters();
+                            foreach (var d in data)
+                                param.Add(d.SpParamName, d.Value, d.ParameterType, d.ParameterDirection);
+
+                            DbConnection.Execute(spName, param, trans, commandType: CommandType.StoredProcedure);
+
+                            var auto = data.FirstOrDefault(x => x.AutoNumber == 1);
+                            if (auto != null)
+                            {
+                                var autoNum = auto.SpParamName;
+                                var id = param.Get<dynamic>(autoNum);
+                                ReflectionManager.SetPropertyValue(entity, auto.PropertyName, id);
+                                result = entity;
+                            }
+
+                            if (transaction == null)
+                                CommitTransaction(trans);
+
+                            return result;
+                        }
+                    }
+                default:
+                    throw new ArgumentOutOfRangeException("method");
             }
         }
-
-        public void Delete(TEntity entity, IDbTransaction transaction = null)
-        {
-            if (entity == null) return;
-            if (_entityAttributes.RetrieveOnly)
-                return;
-            using (DbConnection)
-            {
-                var trans = transaction ?? BeginTransaction();
-                using (trans)
-                {
-                    object[] obj = EntityAnalyser<TEntity>.GetValues(entity);
-                    var cmd = string.Format(_entityAttributes.DeleteStatement, obj);
-                    DbConnection.Execute(cmd, transaction: trans, commandType: CommandType.Text);
-                    if (transaction == null)
-                        CommitTransaction(trans);
-                }
-            }
-        }
-
-        public void Insert(IList<TEntity> entities, IDbTransaction transaction = null)
+        public void Insert(IList<TEntity> entities, MethodType method = MethodType.Text, IDbTransaction transaction = null)
         {
             if (entities == null) return;
             if (_entityAttributes.RetrieveOnly)
-                return;
+                throw new Exception("Class is defined as [RetrieveOnly]");
+
             ValidationResults = null;
             var c = entities.Count();
             var cmd = new string[c];
-            using (DbConnection)
-            {
-                var trans = transaction ?? BeginTransaction();
-                using (trans)
-                {
-                    var ins = _entityAttributes.HaveAutoNumber
-                        ? _entityAttributes.InsertReturnStatement
-                        : _entityAttributes.InsertStatement;
-                    int i = 0;
-                    foreach (var entity in entities)
-                    {
-                        if (!entity.IsValid())
-                        {
-                            var cascadeMode = _entityAttributes.CascadeMode;
-                            switch (cascadeMode)
-                            {
-                                case CascadeMode.Continue:
-                                    continue;
-                                case CascadeMode.StopOnFirstFailure:
-                                    return;
-                                default:
-                                    throw new ArgumentOutOfRangeException();
-                            }
-                        }
 
-                        object[] obj = EntityAnalyser<TEntity>.GetValues(entity);
-                        cmd[i] = string.Format(ins, obj);
-                        i++;
+            switch (method)
+            {
+                case MethodType.Text:
+                    using (DbConnection)
+                    {
+                        var trans = transaction ?? BeginTransaction();
+                        using (trans)
+                        {
+                            var ins = _entityAttributes.HaveAutoNumber
+                                ? _entityAttributes.InsertReturnStatement
+                                : _entityAttributes.InsertStatement;
+                            int i = 0;
+                            foreach (var entity in entities)
+                            {
+                                if (!entity.IsValid())
+                                {
+                                    var cascadeMode = _entityAttributes.CascadeMode;
+                                    switch (cascadeMode)
+                                    {
+                                        case CascadeMode.Continue:
+                                            continue;
+                                        case CascadeMode.StopOnFirstFailure:
+                                            return;
+                                        default:
+                                            throw new ArgumentOutOfRangeException();
+                                    }
+                                }
+
+                                object[] obj = EntityAnalyser<TEntity>.GetValues(entity);
+                                cmd[i] = string.Format(ins, obj);
+                                i++;
+                            }
+                            var exeCmd = cmd.Aggregate((a, b) => a + " " + b);
+                            DbConnection.Execute(exeCmd, transaction: trans, commandType: CommandType.Text);
+                            if (transaction == null)
+                                CommitTransaction(trans);
+                        }
                     }
-                    var exeCmd = cmd.Aggregate((a, b) => a + " " + b);
-                    DbConnection.Execute(exeCmd, transaction: trans, commandType: CommandType.Text);
-                    if (transaction == null)
-                        CommitTransaction(trans);
-                }
+                    break;
+                case MethodType.StoredProcedure:
+                    using (DbConnection)
+                    {
+                        var trans = transaction ?? BeginTransaction();
+                        using (trans)
+                        {
+                            foreach (var entity in entities)
+                            {
+                                if (!entity.IsValid())
+                                {
+                                    var cascadeMode = _entityAttributes.CascadeMode;
+                                    switch (cascadeMode)
+                                    {
+                                        case CascadeMode.Continue:
+                                            continue;
+                                        case CascadeMode.StopOnFirstFailure:
+                                            return;
+                                        default:
+                                            throw new ArgumentOutOfRangeException();
+                                    }
+                                }
+                                var data =
+                                    EntityAnalyser<TEntity>.GetData(entity)
+                                        .Where(x => !x.IsViewColumn && x.IsSpCudParameter)
+                                        .ToList();
+                                var spName = _entityAttributes.InsertSpName;
+                                var param = new DynamicParameters();
+                                foreach (var d in data)
+                                    param.Add(d.SpParamName, d.Value, d.ParameterType, d.ParameterDirection);
+                                DbConnection.Execute(spName, param, trans, commandType: CommandType.StoredProcedure);
+                            }
+                            if (transaction == null)
+                                CommitTransaction(trans);
+                        }
+                    }
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException("method");
             }
         }
+        public void Update(TEntity entity, MethodType method = MethodType.Text, IDbTransaction transaction = null)
+        {
+            if (entity == null) return;
+            if (_entityAttributes.RetrieveOnly)
+                throw new Exception("Class is defined as [RetrieveOnly]");
+            ValidationResults = null;
+            if (!entity.IsValid())
+            {
+                ValidationResults = entity.Validate();
+                return;
+            }
 
-        public TEntity InsertBySp(TEntity entity, IDbTransaction transaction = null)
+            switch (method)
+            {
+                case MethodType.Text:
+                    using (DbConnection)
+                    {
+                        var trans = transaction ?? BeginTransaction();
+                        using (trans)
+                        {
+                            object[] obj = EntityAnalyser<TEntity>.GetValues(entity);
+                            var cmdText = string.Format(_entityAttributes.UpdateStatement, obj);
+                            var r = DbConnection.Execute(cmdText, transaction: trans, commandType: CommandType.Text);
+                            var result = r >= 0;
+
+                            if (transaction == null)
+                                CommitTransaction(trans);
+                        }
+                    }
+                    break;
+                case MethodType.StoredProcedure:
+                    using (DbConnection)
+                    {
+                        var trans = transaction ?? BeginTransaction();
+                        using (trans)
+                        {
+                            var data =
+                                EntityAnalyser<TEntity>.GetData(entity)
+                                    .Where(x => !x.IsViewColumn && x.IsSpCudParameter)
+                                    .ToList();
+                            var spName = _entityAttributes.UpdateSpName;
+
+                            var param = new DynamicParameters();
+                            foreach (var d in data)
+                                param.Add(d.SpParamName, d.Value, d.ParameterType, ParameterDirection.Input);
+
+                            DbConnection.Execute(spName, param, trans, commandType: CommandType.StoredProcedure);
+                            if (transaction == null)
+                                CommitTransaction(trans);
+
+                        }
+                    }
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException("method");
+            }
+        }
+        public void Update(IList<TEntity> entities, MethodType method = MethodType.Text, IDbTransaction transaction = null)
+        {
+            if (entities == null) return;
+            if (_entityAttributes.RetrieveOnly)
+                throw new Exception("Class is defined as [RetrieveOnly]");
+            ValidationResults = null;
+            var c = entities.Count();
+            var cmd = new string[c];
+
+
+            switch (method)
+            {
+                case MethodType.Text:
+                    using (DbConnection)
+                    {
+                        var trans = transaction ?? BeginTransaction();
+                        using (trans)
+                        {
+                            int i = 0;
+                            foreach (var entity in entities)
+                            {
+                                if (!entity.IsValid())
+                                {
+                                    var cascadeMode = _entityAttributes.CascadeMode;
+                                    switch (cascadeMode)
+                                    {
+                                        case CascadeMode.Continue:
+                                            continue;
+                                        case CascadeMode.StopOnFirstFailure:
+                                            return;
+                                        default:
+                                            throw new ArgumentOutOfRangeException();
+                                    }
+                                }
+
+                                object[] obj = EntityAnalyser<TEntity>.GetValues(entity);
+                                var cmdText = string.Format(_entityAttributes.UpdateStatement, obj);
+                                cmd[i] = cmdText;
+                                i++;
+                            }
+                            var exeCmd = cmd.Aggregate((a, b) => a + " " + b);
+                            DbConnection.Execute(exeCmd, transaction: trans, commandType: CommandType.Text);
+                            if (transaction == null)
+                                CommitTransaction(trans);
+                        }
+                    }
+                    break;
+                case MethodType.StoredProcedure:
+                    using (DbConnection)
+                    {
+                        var trans = transaction ?? BeginTransaction();
+                        using (trans)
+                        {
+                            foreach (var entity in entities)
+                            {
+                                if (!entity.IsValid())
+                                {
+                                    var cascadeMode = _entityAttributes.CascadeMode;
+                                    switch (cascadeMode)
+                                    {
+                                        case CascadeMode.Continue:
+                                            continue;
+                                        case CascadeMode.StopOnFirstFailure:
+                                            return;
+                                        default:
+                                            throw new ArgumentOutOfRangeException();
+                                    }
+                                }
+                                var data =
+                                    EntityAnalyser<TEntity>.GetData(entity)
+                                        .Where(x => !x.IsViewColumn && x.IsSpCudParameter)
+                                        .ToList();
+                                var spName = _entityAttributes.UpdateSpName;
+                                var param = new DynamicParameters();
+                                foreach (var d in data)
+                                    param.Add(d.SpParamName, d.Value, d.ParameterType, ParameterDirection.Input);
+
+                                DbConnection.Execute(spName, param, trans, commandType: CommandType.StoredProcedure);
+                            }
+                            if (transaction == null)
+                                CommitTransaction(trans);
+                        }
+                    }
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException("method");
+            }
+        }
+        public TEntity InsertOrUpdate(TEntity entity, MethodType method = MethodType.Text, IDbTransaction transaction = null)
         {
             if (entity == null) return null;
+
             if (_entityAttributes.RetrieveOnly)
-                return null;
+                throw new Exception("Class is defined as [RetrieveOnly]");
+
             ValidationResults = null;
             if (!entity.IsValid())
             {
                 ValidationResults = entity.Validate();
                 return null;
             }
-            using (DbConnection)
+            object[] obj = EntityAnalyser<TEntity>.GetValues(entity);
+            var cmdtxt = _entityAttributes.HaveAutoNumber
+                ? _entityAttributes.InsertReturnStatement
+                : _entityAttributes.InsertStatement;
+            var cmdInsert = string.Format(cmdtxt, obj);
+            var cmdUpdate = string.Format(_entityAttributes.UpdateStatement, obj);
+            var cmdSelectId = string.Format(_entityAttributes.SelectByIdStatement, obj);
+            var cmdWhere = string.Format(_entityAttributes.WhereStatement, obj);
+            switch (method)
             {
-                var trans = transaction ?? BeginTransaction();
-                using (trans)
-                {
-                    TEntity result = entity;
-                    var data =
-                        EntityAnalyser<TEntity>.GetData(entity)
-                            .Where(x => !x.IsViewColumn && x.IsSpCudParameter)
-                            .ToList();
-                    var spName = _entityAttributes.InsertSpName;
 
-                    var param = new DynamicParameters();
-                    foreach (var d in data)
-                        param.Add(d.SpParamName, d.Value, d.ParameterType, d.ParameterDirection);
-
-                    DbConnection.Execute(spName, param, trans, commandType: CommandType.StoredProcedure);
-
-                    var auto = data.FirstOrDefault(x => x.AutoNumber == 1);
-                    if (auto != null)
+                case MethodType.Text:
+                    using (DbConnection)
                     {
-                        var autoNum = auto.SpParamName;
-                        var id = param.Get<dynamic>(autoNum);
-                        ReflectionManager.SetPropertyValue(entity, auto.PropertyName, id);
-                        result = entity;
-                    }
-
-                    if (transaction == null)
-                        CommitTransaction(trans);
-
-                    return result;
-                }
-            }
-        }
-
-        public void InsertBySp(IList<TEntity> entities, IDbTransaction transaction = null)
-        {
-            if (entities == null) return;
-            if (_entityAttributes.RetrieveOnly)
-                return;
-            ValidationResults = null;
-            using (DbConnection)
-            {
-                var trans = transaction ?? BeginTransaction();
-                using (trans)
-                {
-                    foreach (var entity in entities)
-                    {
-                        if (!entity.IsValid())
+                        var trans = transaction ?? BeginTransaction();
+                        using (trans)
                         {
-                            var cascadeMode = _entityAttributes.CascadeMode;
-                            switch (cascadeMode)
-                            {
-                                case CascadeMode.Continue:
-                                    continue;
-                                case CascadeMode.StopOnFirstFailure:
-                                    return;
-                                default:
-                                    throw new ArgumentOutOfRangeException();
-                            }
+
+                            var cmdText = string.Format("IF EXISTS (SELECT * FROM {0}.{1} WHERE {2}) BEGIN {3} {4} END ELSE BEGIN {5} END",
+                                _entityAttributes.SchemaName, _entityAttributes.TableName, cmdWhere,
+                                cmdUpdate, cmdSelectId, cmdInsert);
+
+                            var result =
+                                DbConnection.Query<TEntity>(cmdText, transaction: trans, commandType: CommandType.Text)
+                                    .FirstOrDefault();
+                            if (transaction == null)
+                                CommitTransaction(trans);
+                            return result;
                         }
-                        var data =
-                            EntityAnalyser<TEntity>.GetData(entity)
-                                .Where(x => !x.IsViewColumn && x.IsSpCudParameter)
-                                .ToList();
-                        var spName = _entityAttributes.InsertSpName;
-                        var param = new DynamicParameters();
-                        foreach (var d in data)
-                            param.Add(d.SpParamName, d.Value, d.ParameterType, d.ParameterDirection);
-                        DbConnection.Execute(spName, param, trans, commandType: CommandType.StoredProcedure);
                     }
-                    if (transaction == null)
-                        CommitTransaction(trans);
-                }
+                case MethodType.StoredProcedure:
+
+                    using (DbConnection)
+                    {
+                        var trans = transaction ?? BeginTransaction();
+                        using (trans)
+                        {
+                            TEntity result;
+                            var exists = DbConnection.Query<bool>(string.Format("SELECT TOP 1 1 FROM {0}.{1} WHERE {2}",
+                                _entityAttributes.SchemaName, _entityAttributes.TableName, cmdWhere),
+                                transaction: trans, commandType: CommandType.Text).FirstOrDefault();
+                            if (exists)
+                            {
+                                Update(entity, MethodType.StoredProcedure, trans);
+                                result = entity;
+                            }
+                            else
+                                result = Insert(entity, MethodType.StoredProcedure, trans);
+
+                            if (transaction == null)
+                                CommitTransaction(trans);
+                            return result;
+                        }
+                    }
+                default:
+                    throw new ArgumentOutOfRangeException("method");
             }
         }
 
-        public void Update(TEntity entity, IDbTransaction transaction = null)
+
+
+
+
+
+
+        public void Delete(TEntity entity, MethodType method = MethodType.Text, IDbTransaction transaction = null)
         {
             if (entity == null) return;
             if (_entityAttributes.RetrieveOnly)
-                return;
-            ValidationResults = null;
-            if (!entity.IsValid())
-            {
-                ValidationResults = entity.Validate();
-                return;
-            }
-
+                throw new Exception("Class is defined as [RetrieveOnly]");
             using (DbConnection)
             {
                 var trans = transaction ?? BeginTransaction();
                 using (trans)
                 {
-                    object[] obj = EntityAnalyser<TEntity>.GetValues(entity);
-                    var cmdText = string.Format(_entityAttributes.UpdateStatement, obj);
-                    var r = DbConnection.Execute(cmdText, transaction: trans, commandType: CommandType.Text);
-                    var result = r >= 0;
+                    switch (method)
+                    {
+                        case MethodType.Text:
 
-                    if (transaction == null)
-                        CommitTransaction(trans);
+                            object[] obj = EntityAnalyser<TEntity>.GetValues(entity);
+                            var cmd = string.Format(_entityAttributes.DeleteStatement, obj);
+                            DbConnection.Execute(cmd, transaction: trans, commandType: CommandType.Text);
+                            if (transaction == null)
+                                CommitTransaction(trans);
+                            break;
+                        case MethodType.StoredProcedure:
+                            var data = EntityAnalyser<TEntity>.GetData(entity);
+                            var spName = _entityAttributes.DeleteSpName;
+                            var ids = data.Where(x => x.AutoNumber != -1).ToList();
+                            var param = new DynamicParameters();
+                            foreach (var id in ids)
+                                param.Add(id.SpParamName, id.Value, id.ParameterType, ParameterDirection.Input);
+                            DbConnection.Execute(spName, param, trans, commandType: CommandType.StoredProcedure);
+                            if (transaction == null)
+                                CommitTransaction(trans);
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException("method");
+                    }
                 }
             }
         }
 
-        public void Update(IList<TEntity> entities, IDbTransaction transaction = null)
+
+
+
+
+
+
+
+
+        public void Delete(IList<TEntity> entities, MethodType method = MethodType.Text, IDbTransaction transaction = null)
         {
             if (entities == null) return;
             if (_entityAttributes.RetrieveOnly)
-                return;
+                throw new Exception("Class is defined as [RetrieveOnly]");
             ValidationResults = null;
             var c = entities.Count();
             var cmd = new string[c];
@@ -355,256 +567,98 @@ namespace Dapperism.DataAccess
                 var trans = transaction ?? BeginTransaction();
                 using (trans)
                 {
-                    int i = 0;
-                    foreach (var entity in entities)
+                    switch (method)
                     {
-                        if (!entity.IsValid())
-                        {
-                            var cascadeMode = _entityAttributes.CascadeMode;
-                            switch (cascadeMode)
+                        case MethodType.Text:
+                            int i = 0;
+                            foreach (var entity in entities)
                             {
-                                case CascadeMode.Continue:
-                                    continue;
-                                case CascadeMode.StopOnFirstFailure:
-                                    return;
-                                default:
-                                    throw new ArgumentOutOfRangeException();
+                                object[] obj = EntityAnalyser<TEntity>.GetValues(entity);
+                                var cmdText = string.Format(_entityAttributes.UpdateStatement, obj);
+
+                                cmd[i] = cmdText;
+                                i++;
                             }
-                        }
-
-                        object[] obj = EntityAnalyser<TEntity>.GetValues(entity);
-                        var cmdText = string.Format(_entityAttributes.UpdateStatement, obj);
-                        cmd[i] = cmdText;
-                        i++;
-                    }
-                    var exeCmd = cmd.Aggregate((a, b) => a + " " + b);
-                    DbConnection.Execute(exeCmd, transaction: trans, commandType: CommandType.Text);
-                    if (transaction == null)
-                        CommitTransaction(trans);
-                }
-            }
-        }
-
-        public void UpdateBySp(TEntity entity, IDbTransaction transaction = null)
-        {
-            if (entity == null) return;
-            if (_entityAttributes.RetrieveOnly)
-                return;
-            ValidationResults = null;
-            if (!entity.IsValid())
-            {
-                ValidationResults = entity.Validate();
-                return;
-            }
-            using (DbConnection)
-            {
-                var trans = transaction ?? BeginTransaction();
-                using (trans)
-                {
-                    var data =
-                        EntityAnalyser<TEntity>.GetData(entity)
-                            .Where(x => !x.IsViewColumn && x.IsSpCudParameter)
-                            .ToList();
-                    var spName = _entityAttributes.UpdateSpName;
-
-                    var param = new DynamicParameters();
-                    foreach (var d in data)
-                        param.Add(d.SpParamName, d.Value, d.ParameterType, ParameterDirection.Input);
-
-                    DbConnection.Execute(spName, param, trans, commandType: CommandType.StoredProcedure);
-                    if (transaction == null)
-                        CommitTransaction(trans);
-
-                }
-            }
-        }
-
-        public void UpdateBySp(IList<TEntity> entities, IDbTransaction transaction = null)
-        {
-            if (entities == null) return;
-            if (_entityAttributes.RetrieveOnly)
-                return;
-            ValidationResults = null;
-            using (DbConnection)
-            {
-                var trans = transaction ?? BeginTransaction();
-                using (trans)
-                {
-                    foreach (var entity in entities)
-                    {
-                        if (!entity.IsValid())
-                        {
-                            var cascadeMode = _entityAttributes.CascadeMode;
-                            switch (cascadeMode)
+                            var exeCmd = cmd.Aggregate((a, b) => a + " " + b);
+                            DbConnection.Execute(exeCmd, transaction: trans, commandType: CommandType.Text);
+                            if (transaction == null)
+                                CommitTransaction(trans);
+                            break;
+                        case MethodType.StoredProcedure:
+                            var spName = _entityAttributes.DeleteSpName;
+                            foreach (var entity in entities)
                             {
-                                case CascadeMode.Continue:
-                                    continue;
-                                case CascadeMode.StopOnFirstFailure:
-                                    return;
-                                default:
-                                    throw new ArgumentOutOfRangeException();
+                                var data = EntityAnalyser<TEntity>.GetData(entity);
+                                var ids = data.Where(x => x.AutoNumber != -1).ToList();
+
+                                var param = new DynamicParameters();
+                                foreach (var id in ids)
+                                    param.Add(id.SpParamName, id.Value, id.ParameterType, ParameterDirection.Input);
+
+                                DbConnection.Execute(spName, param, trans, commandType: CommandType.StoredProcedure);
                             }
-                        }
-                        var data =
-                            EntityAnalyser<TEntity>.GetData(entity)
-                                .Where(x => !x.IsViewColumn && x.IsSpCudParameter)
-                                .ToList();
-                        var spName = _entityAttributes.UpdateSpName;
-                        var param = new DynamicParameters();
-                        foreach (var d in data)
-                            param.Add(d.SpParamName, d.Value, d.ParameterType, ParameterDirection.Input);
-
-                        DbConnection.Execute(spName, param, trans, commandType: CommandType.StoredProcedure);
+                            if (transaction == null)
+                                CommitTransaction(trans);
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException("method");
                     }
-                    if (transaction == null)
-                        CommitTransaction(trans);
                 }
             }
         }
 
-        public void Delete(IList<TEntity> entities, IDbTransaction transaction = null)
-        {
-            if (entities == null) return;
-            if (_entityAttributes.RetrieveOnly)
-                return;
-            ValidationResults = null;
-            var c = entities.Count();
-            var cmd = new string[c];
-            using (DbConnection)
-            {
-                var trans = transaction ?? BeginTransaction();
-                using (trans)
-                {
-                    int i = 0;
-                    foreach (var entity in entities)
-                    {
-                        object[] obj = EntityAnalyser<TEntity>.GetValues(entity);
-                        var cmdText = string.Format(_entityAttributes.UpdateStatement, obj);
-
-                        cmd[i] = cmdText;
-                        i++;
-                    }
-
-                    var exeCmd = cmd.Aggregate((a, b) => a + " " + b);
-                    DbConnection.Execute(exeCmd, transaction: trans, commandType: CommandType.Text);
-                    if (transaction == null)
-                        CommitTransaction(trans);
-                }
-            }
-        }
-
-        public void DeleteBySp(TEntity entity, IDbTransaction transaction = null)
-        {
-            if (entity == null) return;
-            if (_entityAttributes.RetrieveOnly)
-                return;
-            using (DbConnection)
-            {
-                var trans = transaction ?? BeginTransaction();
-                using (trans)
-                {
-                    var data = EntityAnalyser<TEntity>.GetData(entity);
-                    var spName = _entityAttributes.DeleteSpName;
-                    var ids = data.Where(x => x.AutoNumber != -1).ToList();
-
-                    var param = new DynamicParameters();
-                    foreach (var id in ids)
-                        param.Add(id.SpParamName, id.Value, id.ParameterType, ParameterDirection.Input);
-
-                    DbConnection.Execute(spName, param, trans, commandType: CommandType.StoredProcedure);
-                    if (transaction == null)
-                        CommitTransaction(trans);
-                }
-            }
-        }
-
-        public void DeleteBySp(IList<TEntity> entities, IDbTransaction transaction = null)
-        {
-            if (entities == null) return;
-            if (_entityAttributes.RetrieveOnly)
-                return;
-            using (DbConnection)
-            {
-                var trans = transaction ?? BeginTransaction();
-                using (trans)
-                {
-                    var spName = _entityAttributes.DeleteSpName;
-                    foreach (var entity in entities)
-                    {
-                        var data = EntityAnalyser<TEntity>.GetData(entity);
-                        var ids = data.Where(x => x.AutoNumber != -1).ToList();
-
-                        var param = new DynamicParameters();
-                        foreach (var id in ids)
-                            param.Add(id.SpParamName, id.Value, id.ParameterType, ParameterDirection.Input);
-
-                        DbConnection.Execute(spName, param, trans, commandType: CommandType.StoredProcedure);
-                    }
-                    if (transaction == null)
-                        CommitTransaction(trans);
-                }
-            }
-        }
-
-        public void DeleteBySp(IDbTransaction transaction = null, params object[] id)
+        public void Delete(MethodType method = MethodType.Text, IDbTransaction transaction = null, params object[] id)
         {
             if (id == null) return;
             if (_entityAttributes.RetrieveOnly)
                 return;
+            var ids = _entityAttributes.PrimaryKeys;
+            if (ids.Count() != id.Count())
+                throw new Exception("Id`s count not matched");
             using (DbConnection)
             {
                 var trans = transaction ?? BeginTransaction();
                 using (trans)
                 {
-                    var ids = _entityAttributes.PrimaryKeys;
-                    string spName = _entityAttributes.DeleteSpName;
-
-                    if (ids.Count() != id.Count())
-                        throw new Exception("Id`s count not matched");
-
-                    var param = new DynamicParameters();
-                    int i = 0;
-                    foreach (var d in ids)
+                    switch (method)
                     {
-                        param.Add(d.Item2, id[i], d.Item3, ParameterDirection.Input);
-                        i++;
+                        case MethodType.Text:
+
+                            string str = "";
+                            int i = 0;
+                            foreach (var d in ids)
+                            {
+                                str += string.Format("[{0}] = '{1}' ", d.Item1, id[i]);
+                                i++;
+                            }
+                            var whereStr = str.Replace("'[", "' AND [");
+                            var cmdText = string.Format("DELETE FROM {0}.{1} WHERE {2}", _entityAttributes.SchemaName,
+                                _entityAttributes.TableName, whereStr.Trim());
+                            DbConnection.Execute(cmdText, transaction: trans, commandType: CommandType.Text);
+                            if (transaction == null)
+                                CommitTransaction(trans);
+
+                            break;
+                        case MethodType.StoredProcedure:
+                            string spName = _entityAttributes.DeleteSpName;
+                            var param = new DynamicParameters();
+                            int j = 0;
+                            foreach (var d in ids)
+                            {
+                                param.Add(d.Item2, id[j], d.Item3, ParameterDirection.Input);
+                                j++;
+                            }
+
+                            DbConnection.Execute(spName, param, trans, commandType: CommandType.StoredProcedure);
+                            if (transaction == null)
+                                CommitTransaction(trans);
+
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException("method");
                     }
 
-                    DbConnection.Execute(spName, param, trans, commandType: CommandType.StoredProcedure);
-                    if (transaction == null)
-                        CommitTransaction(trans);
-                }
-            }
-        }
 
-        public void Delete(IDbTransaction transaction = null, params object[] id)
-        {
-            if (id == null) return;
-            if (_entityAttributes.RetrieveOnly)
-                return;
-            using (DbConnection)
-            {
-                var trans = transaction ?? BeginTransaction();
-                using (trans)
-                {
-                    var ids = _entityAttributes.PrimaryKeys;
-                    string str = "";
-
-                    if (ids.Count() != id.Count())
-                        throw new Exception("Id`s count not matched");
-
-                    int i = 0;
-                    foreach (var d in ids)
-                    {
-                        str += string.Format("[{0}] = '{1}' ", d.Item1, id[i]);
-                        i++;
-                    }
-                    var whereStr = str.Replace("'[", "' AND [");
-                    var cmdText = string.Format("DELETE FROM {0}.{1} WHERE {2}", _entityAttributes.SchemaName,
-                        _entityAttributes.TableName, whereStr.Trim());
-                    DbConnection.Execute(cmdText, transaction: trans, commandType: CommandType.Text);
-                    if (transaction == null)
-                        CommitTransaction(trans);
                 }
             }
 
@@ -692,73 +746,66 @@ namespace Dapperism.DataAccess
             }
         }
 
-        public TEntity GetById(IDbTransaction transaction = null, string[] selectClause = null, params object[] id)
+        public TEntity GetById(MethodType method = MethodType.Text, IDbTransaction transaction = null, string[] selectClause = null, params object[] id)
         {
-            var select = "*";
-            if (selectClause != null && selectClause.Any())
-                select = string.Format("[{0}]", selectClause.Aggregate((a, b) => string.Format("{0}] , [{1}", a, b)));
-
-            var vt = string.IsNullOrEmpty(_entityAttributes.ViewName)
-                ? _entityAttributes.TableName
-                : _entityAttributes.ViewName;
-
+            TEntity result = null;
             var ids = _entityAttributes.PrimaryKeys;
             string str = "";
 
             if (ids.Count() != id.Count())
                 throw new Exception("Id`s count not matched");
-
-            int i = 0;
-            foreach (var d in ids)
-            {
-                str += string.Format("[{0}] = '{1}' ", d.Item1, id[i]);
-                i++;
-            }
-            var whereStr = str.Replace("'[", "' AND [");
             using (DbConnection)
             {
                 var trans = transaction ?? BeginTransaction();
                 using (trans)
                 {
-                    var result =
-                        DbConnection.Query<TEntity>(
-                            string.Format("SELECT {0} FROM {1}.{2} WHERE {3}", select, _entityAttributes.SchemaName,
-                                vt, whereStr), transaction: trans, commandType: CommandType.Text).FirstOrDefault();
 
-                    if (transaction == null)
-                        CommitTransaction(trans);
-                    return result;
-                }
-            }
-        }
-
-        public TEntity GetByIdWithSp(IDbTransaction transaction = null, params object[] id)
-        {
-            var spName = _entityAttributes.SelectByIdSpName;
-            var ids = _entityAttributes.PrimaryKeys;
-
-            if (ids.Count() != id.Count())
-                throw new Exception("Id`s count not matched");
-
-
-            using (DbConnection)
-            {
-                var trans = transaction ?? BeginTransaction();
-                using (trans)
-                {
-                    var param = new DynamicParameters();
-                    int i = 0;
-                    foreach (var d in ids)
+                    switch (method)
                     {
-                        param.Add(d.Item2, id[i], d.Item3, ParameterDirection.Input);
-                        i++;
-                    }
-                    var result =
-                        DbConnection.Query<TEntity>(spName, param, trans, commandType: CommandType.StoredProcedure)
-                            .FirstOrDefault();
+                        case MethodType.Text:
+                            var select = "*";
+                            if (selectClause != null && selectClause.Any())
+                                select = string.Format("[{0}]", selectClause.Aggregate((a, b) => string.Format("{0}] , [{1}", a, b)));
 
-                    if (transaction == null)
-                        CommitTransaction(trans);
+                            var vt = string.IsNullOrEmpty(_entityAttributes.ViewName)
+                                ? _entityAttributes.TableName
+                                : _entityAttributes.ViewName;
+                            int i = 0;
+                            foreach (var d in ids)
+                            {
+                                str += string.Format("[{0}] = '{1}' ", d.Item1, id[i]);
+                                i++;
+                            }
+                            var whereStr = str.Replace("'[", "' AND [");
+
+                            result = DbConnection.Query<TEntity>(
+                                                      string.Format("SELECT {0} FROM {1}.{2} WHERE {3}", select, _entityAttributes.SchemaName,
+                                                          vt, whereStr), transaction: trans, commandType: CommandType.Text).FirstOrDefault();
+
+                            if (transaction == null)
+                                CommitTransaction(trans);
+
+                            break;
+                        case MethodType.StoredProcedure:
+
+                            var spName = _entityAttributes.SelectByIdSpName;
+                            var param = new DynamicParameters();
+                            int j = 0;
+                            foreach (var d in ids)
+                            {
+                                param.Add(d.Item2, id[j], d.Item3, ParameterDirection.Input);
+                                j++;
+                            }
+                            result =
+                               DbConnection.Query<TEntity>(spName, param, trans, commandType: CommandType.StoredProcedure)
+                                   .FirstOrDefault();
+
+                            if (transaction == null)
+                                CommitTransaction(trans);
+                            return result;
+                        default:
+                            throw new ArgumentOutOfRangeException("method");
+                    }
                     return result;
                 }
             }
@@ -896,52 +943,7 @@ namespace Dapperism.DataAccess
             }
         }
 
-
-        public TEntity InsertOrUpdate(TEntity entity, IDbTransaction transaction = null)
-        {
-            if (entity == null) return null;
-
-            if (_entityAttributes.RetrieveOnly)
-                return null;
-
-            ValidationResults = null;
-            if (!entity.IsValid())
-            {
-                ValidationResults = entity.Validate();
-                return null;
-            }
-
-            using (DbConnection)
-            {
-                var trans = transaction ?? BeginTransaction();
-                using (trans)
-                {
-                    object[] obj = EntityAnalyser<TEntity>.GetValues(entity);
-                    var cmdtxt = _entityAttributes.HaveAutoNumber
-                        ? _entityAttributes.InsertReturnStatement
-                        : _entityAttributes.InsertStatement;
-                    var cmdInsert = string.Format(cmdtxt, obj);
-                    var cmdUpdate = string.Format(_entityAttributes.UpdateStatement, obj);
-                    var cmdSelectId = string.Format(_entityAttributes.SelectByIdStatement, obj);
-                    var cmdWhere = string.Format(_entityAttributes.WhereStatement, obj);
-                    var cmdText = string.Format("IF EXISTS (SELECT * FROM {0}.{1} WHERE {2}) BEGIN {3} {4} END ELSE BEGIN {5} END",
-                        _entityAttributes.SchemaName, _entityAttributes.TableName, cmdWhere,
-                        cmdUpdate, cmdSelectId, cmdInsert);
-
-                    var result =
-                        DbConnection.Query<TEntity>(cmdText, transaction: trans, commandType: CommandType.Text)
-                            .FirstOrDefault();
-                    if (transaction == null)
-                        CommitTransaction(trans);
-                    return result;
-                }
-
-
-            }
-        }
-
-
-        public IEnumerable<TEntity> GetByFilter(Query.QueryExpression<TEntity> query, IDbTransaction transaction = null)
+        public IEnumerable<TEntity> GetByFilter(QueryExpression<TEntity> query, IDbTransaction transaction = null)
         {
             using (DbConnection)
             {

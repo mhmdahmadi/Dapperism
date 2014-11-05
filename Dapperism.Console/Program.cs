@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Data.SqlClient;
 using System.Diagnostics;
+using Dapper;
 using Dapperism.DataAccess;
 using Dapperism.Enums;
 using Dapperism.Query;
@@ -14,10 +16,13 @@ namespace Dapperism.Console
             DapperismSettings.PreventArabicLetters();
             DapperismSettings.PreventPersianNumbers();*/
 
+
+            var sqlCnn = new SqlConnection("Data Source=.;Initial Catalog=person;Integrated Security=True");
+
             var rep = new Repository<Order>();
             var st11 = new Stopwatch();
             st11.Start();
-            var query = new QueryExpression<Order>()             
+            var query = new QueryExpression<Order>()
                 .Select();
             var aaa = rep.GetByFilter(query);
             st11.Stop();
@@ -27,9 +32,9 @@ namespace Dapperism.Console
             var lst2 = rep.GetAll(9, 45);
             st2.Stop();
 
-
-
-
+            sqlCnn.Open();
+            var b = sqlCnn.Query<bool>("SELECT TOP 1 1 FROM Info WHERE id = '24'");
+            sqlCnn.Close();
 
             var st1 = new Stopwatch();
             st1.Start();

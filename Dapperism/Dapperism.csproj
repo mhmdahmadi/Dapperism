@@ -68,7 +68,6 @@
     <Compile Include="Enums\MethodType.cs" />
     <Compile Include="Settings\DapperismSettings.cs" />
     <Compile Include="DataAccess\DynamicParameters.cs" />
-    <Compile Include="Enums\SqlFunctionType.cs" />
     <Compile Include="Enums\CascadeMode.cs" />
     <Compile Include="Attributes\ColumnNameAttribute.cs" />
     <Compile Include="Attributes\DeleteSpNameAttribute.cs" />
