@@ -5,6 +5,7 @@ using Dapper;
 using Dapperism.DataAccess;
 using Dapperism.Enums;
 using Dapperism.Query;
+using Dapperism.Settings;
 
 namespace Dapperism.Console
 {
@@ -12,14 +13,25 @@ namespace Dapperism.Console
     {
         static void Main(string[] args)
         {
-            /*DapperismSettings.WarmingUp();
+            DapperismSettings.WarmingUp();
             DapperismSettings.PreventArabicLetters();
-            DapperismSettings.PreventPersianNumbers();*/
+            DapperismSettings.PreventPersianNumbers();
+            var rep = new Repository<Order>();
 
 
+
+            var a = rep.Count();
+            var b =
+                rep.Count(
+                    new QueryExpression<Order>()
+                    .Where(x => x.ShipVia, ConditionType.GreaterThan, 1)
+                    .And
+                        .Where(x => x.ShipVia, ConditionType.LessThanEqual, 3)
+                        .Select());
+
+            /*
             var sqlCnn = new SqlConnection("Data Source=.;Initial Catalog=person;Integrated Security=True");
 
-            var rep = new Repository<Order>();
             var st11 = new Stopwatch();
             st11.Start();
             var query = new QueryExpression<Order>()
@@ -163,7 +175,7 @@ namespace Dapperism.Console
             var t10 = st10.ElapsedMilliseconds;
             var t11 = st11.ElapsedMilliseconds;
 
-            var all = t1 + t2 + t3 + t4 + t5 + t6 + t7 + t8 + t9 + t10 + t11;
+            var all = t1 + t2 + t3 + t4 + t5 + t6 + t7 + t8 + t9 + t10 + t11;*/
         }
     }
 }

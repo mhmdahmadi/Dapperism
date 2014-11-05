@@ -501,13 +501,6 @@ namespace Dapperism.DataAccess
                     throw new ArgumentOutOfRangeException("method");
             }
         }
-
-
-
-
-
-
-
         public void Delete(TEntity entity, MethodType method = MethodType.Text, IDbTransaction transaction = null)
         {
             if (entity == null) return;
@@ -545,15 +538,6 @@ namespace Dapperism.DataAccess
                 }
             }
         }
-
-
-
-
-
-
-
-
-
         public void Delete(IList<TEntity> entities, MethodType method = MethodType.Text, IDbTransaction transaction = null)
         {
             if (entities == null) return;
@@ -606,7 +590,6 @@ namespace Dapperism.DataAccess
                 }
             }
         }
-
         public void Delete(MethodType method = MethodType.Text, IDbTransaction transaction = null, params object[] id)
         {
             if (id == null) return;
@@ -663,7 +646,6 @@ namespace Dapperism.DataAccess
             }
 
         }
-
         public IEnumerable<TEntity> GetAll(int? pageIndex = null, int? pageSize = null, string[] pagingOrderCols = null,
             bool? isAscendingOrder = null, IDbTransaction transaction = null, params string[] selectClause)
         {
@@ -725,7 +707,6 @@ namespace Dapperism.DataAccess
                 }
             }
         }
-
         public IEnumerable<TEntity> GetAllBySp(IDbTransaction transaction = null)
         {
             using (DbConnection)
@@ -745,7 +726,6 @@ namespace Dapperism.DataAccess
 
             }
         }
-
         public TEntity GetById(MethodType method = MethodType.Text, IDbTransaction transaction = null, string[] selectClause = null, params object[] id)
         {
             TEntity result = null;
@@ -960,5 +940,41 @@ namespace Dapperism.DataAccess
                 }
             }
         }
+
+        public decimal Count(IDbTransaction transaction = null)
+        {
+            using (DbConnection)
+            {
+                var trans = transaction ?? BeginTransaction();
+                using (trans)
+                {
+                    var r = DbConnection.Query<decimal>(string.Format("SELECT Count(*) FROM {0} As Result", _entityAttributes.STVCombination), commandType: CommandType.Text, transaction: trans).FirstOrDefault();
+                    if (transaction == null)
+                        CommitTransaction(trans);
+
+                    return r;
+                }
+            }
+        }
+
+        public decimal Count(QueryExpression<TEntity> query, IDbTransaction transaction = null)
+        {
+            using (DbConnection)
+            {
+                var trans = transaction ?? BeginTransaction();
+                using (trans)
+                {
+                    var q = query.CreateQuery();
+                    var r = DbConnection.Query<decimal>(string.Format("SELECT Count(*) FROM ({0}) As Result", q), commandType: CommandType.Text, transaction: trans).FirstOrDefault();
+                    if (transaction == null)
+                        CommitTransaction(trans);
+
+                    return r;
+                }
+            }
+        }
+
+
+
     }
 }

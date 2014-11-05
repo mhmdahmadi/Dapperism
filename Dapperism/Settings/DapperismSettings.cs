@@ -253,7 +253,7 @@ namespace Dapperism.Settings
                         .Where(
                             x =>
                                 x.GetInterfaces().Contains(typeof(IEntity)) &&
-                                !x.FullName.Contains("Dapperism.Entities.Entity"))
+                                !x.FullName.Contains("Dapperism.Entity.Entity"))
                         .ToList();
                 foreach (var type in types)
                     GetInfo(type);
