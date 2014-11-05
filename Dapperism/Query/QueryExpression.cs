@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
-using Dapperism.Entities;
+using Dapperism.Entity;
+using Dapperism.EntityAnalysis;
 using Dapperism.Enums;
 using Dapperism.Extensions.Extensions;
 using Dapperism.Extensions.Persian;
 using Dapperism.Extensions.Utilities;
-using Dapperism.Utilities;
 
 namespace Dapperism.Query
 {
-    public class FilterQuery<TEntity> where TEntity : class, IEntity, new()
+    public class QueryExpression<TEntity> where TEntity : class, IEntity, new()
     {
         private string _tableName;
         private string _schemaName;
@@ -36,7 +36,7 @@ namespace Dapperism.Query
             return str;
         }
 
-        public FilterQuery<TEntity> Select(bool isDistinct = false, params string[] selectClause)
+        public QueryExpression<TEntity> Select(bool isDistinct = false, params string[] selectClause)
         {
             var select = "*";
             if (selectClause != null && selectClause.Any())
@@ -47,7 +47,7 @@ namespace Dapperism.Query
             return this;
         }
 
-        public FilterQuery<TEntity> Begin
+        public QueryExpression<TEntity> Begin
         {
             get
             {
@@ -56,7 +56,7 @@ namespace Dapperism.Query
             }
         }
 
-        public FilterQuery<TEntity> End
+        public QueryExpression<TEntity> End
         {
             get
             {
@@ -65,7 +65,7 @@ namespace Dapperism.Query
             }
         }
 
-        public FilterQuery<TEntity> And
+        public QueryExpression<TEntity> And
         {
             get
             {
@@ -74,7 +74,7 @@ namespace Dapperism.Query
             }
         }
 
-        public FilterQuery<TEntity> Or
+        public QueryExpression<TEntity> Or
         {
             get
             {
@@ -83,7 +83,7 @@ namespace Dapperism.Query
             }
         }
 
-        public FilterQuery<TEntity> Not
+        public QueryExpression<TEntity> Not
         {
             get
             {
@@ -92,13 +92,13 @@ namespace Dapperism.Query
             }
         }
 
-        public FilterQuery<TEntity> Where(Expression<Func<TEntity, object>> field, FilterOperation filterOperation, object value)
+        public QueryExpression<TEntity> Where(Expression<Func<TEntity, object>> field, ConditionType filterOperation, object value)
         {
             var columnName = field.GetMemberName();
 
             switch (filterOperation)
             {
-                case FilterOperation.Equal:
+                case ConditionType.Equal:
                     var v1 = value as PersianDateTime;
                     if (value is DateTime)
                     {
@@ -114,7 +114,7 @@ namespace Dapperism.Query
                     }
                     _qText += string.Format("({0} {1} '{2}')", columnName, "=", value);
                     break;
-                case FilterOperation.NotEqual:
+                case ConditionType.NotEqual:
                     var v2 = value as PersianDateTime;
                     if (value is DateTime)
                     {
@@ -130,7 +130,7 @@ namespace Dapperism.Query
                     }
                     _qText += string.Format("({0} {1} '{2}')", columnName, "!=", value);
                     break;
-                case FilterOperation.GreaterThan:
+                case ConditionType.GreaterThan:
                     var v3 = value as PersianDateTime;
                     if (value is DateTime)
                     {
@@ -146,7 +146,7 @@ namespace Dapperism.Query
                     }
                     _qText += string.Format("({0} {1} '{2}')", columnName, ">", value);
                     break;
-                case FilterOperation.GreaterThanEqual:
+                case ConditionType.GreaterThanEqual:
                     var v4 = value as PersianDateTime;
                     if (value is DateTime)
                     {
@@ -162,7 +162,7 @@ namespace Dapperism.Query
                     }
                     _qText += string.Format("({0} {1} '{2}')", columnName, ">=", value);
                     break;
-                case FilterOperation.LessThan:
+                case ConditionType.LessThan:
                     var v5 = value as PersianDateTime;
                     if (value is DateTime)
                     {
@@ -178,7 +178,7 @@ namespace Dapperism.Query
                     }
                     _qText += string.Format("({0} {1} '{2}')", columnName, "<", value);
                     break;
-                case FilterOperation.LessThanEqual:
+                case ConditionType.LessThanEqual:
                     var v6 = value as PersianDateTime;
                     if (value is DateTime)
                     {
@@ -195,34 +195,34 @@ namespace Dapperism.Query
                     _qText += string.Format("({0} {1} '{2}')", columnName, "<=", value);
                     break;
 
-                case FilterOperation.NotLike:
+                case ConditionType.NotLike:
                     _qText += string.Format("({0} {1} N'%{2}%')", columnName, "NOT LIKE", value);
                     break;
-                case FilterOperation.Like:
+                case ConditionType.Like:
                     _qText += string.Format("({0} {1} N'%{2}%')", columnName, "LIKE", value);
                     break;
-                case FilterOperation.StartsWith:
+                case ConditionType.StartsWith:
                     _qText += string.Format("({0} {1} N'{2}%')", columnName, "LIKE", value);
                     break;
-                case FilterOperation.DoesNotStartWith:
+                case ConditionType.DoesNotStartWith:
                     _qText += string.Format("({0} {1} N'{2}%')", columnName, "NOT LIKE", value);
                     break;
-                case FilterOperation.EndsWith:
+                case ConditionType.EndsWith:
                     _qText += string.Format("({0} {1} N'%{2}')", columnName, "LIKE", value);
                     break;
-                case FilterOperation.DoesNotEndWith:
+                case ConditionType.DoesNotEndWith:
                     _qText += string.Format("({0} {1} N'%{2}')", columnName, "NOT LIKE", value);
                     break;
-                case FilterOperation.IsNull:
+                case ConditionType.IsNull:
                     _qText += string.Format("({0} {1})", columnName, "IS NULL");
                     break;
-                case FilterOperation.IsNotNull:
+                case ConditionType.IsNotNull:
                     _qText += string.Format("({0} {1})", columnName, "IS NOT NULL");
                     break;
-                case FilterOperation.In:
+                case ConditionType.In:
                     _qText += string.Format("({0} {1} ({2}))", columnName, "IN", value);
                     break;
-                case FilterOperation.MultipleLike:
+                case ConditionType.MultipleLike:
                     var value2 = value as string[];
                     if (value2 != null && value2.Any())
                     {
@@ -231,7 +231,7 @@ namespace Dapperism.Query
                     }
                     break;
 
-                case FilterOperation.MultipleTotalLike:
+                case ConditionType.MultipleTotalLike:
                     var strings2 = value as string[];
                     if (strings2 != null && strings2.Any())
                     {
@@ -240,7 +240,7 @@ namespace Dapperism.Query
                     }
                     break;
 
-                case FilterOperation.MultipleStartLike:
+                case ConditionType.MultipleStartLike:
                     var value3 = value as string[];
                     if (value3 != null && value3.Any())
                     {
@@ -249,7 +249,7 @@ namespace Dapperism.Query
                     }
                     break;
 
-                case FilterOperation.MultipleEndLike:
+                case ConditionType.MultipleEndLike:
                     var strings3 = value as string[];
                     if (strings3 != null && strings3.Any())
                     {
@@ -258,7 +258,7 @@ namespace Dapperism.Query
                     }
                     break;
 
-                case FilterOperation.NotMultipleTotalLike:
+                case ConditionType.NotMultipleTotalLike:
                     var strings = value as string[];
                     if (strings != null && strings.Any())
                     {
@@ -267,7 +267,7 @@ namespace Dapperism.Query
                     }
                     break;
 
-                case FilterOperation.NotMultipleLike:
+                case ConditionType.NotMultipleLike:
                     var value4 = value as string[];
                     if (value4 != null && value4.Any())
                     {
@@ -276,7 +276,7 @@ namespace Dapperism.Query
                     }
                     break;
 
-                case FilterOperation.NotMultipleStartLike:
+                case ConditionType.NotMultipleStartLike:
                     var strings1 = value as string[];
                     if (strings1 != null && strings1.Any())
                     {
@@ -285,7 +285,7 @@ namespace Dapperism.Query
                     }
                     break;
 
-                case FilterOperation.NotMultipleEndLike:
+                case ConditionType.NotMultipleEndLike:
                     var value1 = value as string[];
                     if (value1 != null && value1.Any())
                     {

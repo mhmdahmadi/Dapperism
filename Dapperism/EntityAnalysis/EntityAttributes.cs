@@ -4,7 +4,7 @@ using System.Data;
 using System.Reflection;
 using Dapperism.Enums;
 
-namespace Dapperism.Entities
+namespace Dapperism.EntityAnalysis
 {
     internal class EntityAttributes
     {

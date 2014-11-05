@@ -5,11 +5,11 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Dapperism.Attributes;
-using Dapperism.Entities;
+using Dapperism.Entity;
+using Dapperism.EntityAnalysis;
 using Dapperism.Enums;
 using Dapperism.Extensions.Extensions;
 using Dapperism.Extensions.Utilities;
-using Dapperism.Utilities;
 using Fasterflect;
 
 namespace Dapperism.Settings

@@ -3,18 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 
-namespace Dapperism.Entities
+namespace Dapperism.DataAccess
 {
-    
-    public class DynamicParameter
-    {
-        public string Name { get; set; }
-        public object Value { get; set; }
-        public int? Size { get; set; }
-        public ParameterDirection? Direction { get; set; }
-        public DbType? DbType { get; set; }
-    }
-
     public class DynamicParameters : IEnumerable<DynamicParameter>
     {
         private readonly List<DynamicParameter> _dpList;
@@ -74,7 +64,7 @@ namespace Dapperism.Entities
         }
 
 
-        public static implicit operator Dapper.DynamicParameters(Dapperism.Entities.DynamicParameters dps)
+        public static implicit operator Dapper.DynamicParameters(DynamicParameters dps)
         {
             var r = dps.ToDapperParams();
             return r;

@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using System.Data;
-using Dapperism.Entities;
+using Dapperism.Entity;
 using Dapperism.Query;
+using Dapperism.Validation;
 
 namespace Dapperism.DataAccess
 {
@@ -52,6 +53,6 @@ namespace Dapperism.DataAccess
             DynamicParameters dynamicParams, IDbTransaction transaction = null);
 
         TEntity InsertOrUpdate(TEntity entity, IDbTransaction transaction = null);
-        IEnumerable<TEntity> GetByFilter(FilterQuery<TEntity> query, IDbTransaction transaction = null);
+        IEnumerable<TEntity> GetByFilter(QueryExpression<TEntity> query, IDbTransaction transaction = null);
     }
 }

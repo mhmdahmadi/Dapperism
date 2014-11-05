@@ -5,12 +5,13 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using Dapper;
-using Dapperism.Entities;
+using Dapperism.Entity;
+using Dapperism.EntityAnalysis;
 using Dapperism.Enums;
 using Dapperism.Extensions.Extensions;
 using Dapperism.Extensions.Utilities;
 using Dapperism.Query;
-using Dapperism.Utilities;
+using Dapperism.Validation;
 using DynamicParameters = Dapper.DynamicParameters;
 
 namespace Dapperism.DataAccess
@@ -835,7 +836,7 @@ namespace Dapperism.DataAccess
         }
 
         public IEnumerable<TEntity> ExecStoredProcedure(string spName,
-            Dapperism.Entities.DynamicParameters dynamicParams, IDbTransaction transaction = null)
+            DynamicParameters dynamicParams, IDbTransaction transaction = null)
         {
             using (DbConnection)
             {
@@ -875,7 +876,7 @@ namespace Dapperism.DataAccess
         }
 
         public IEnumerable<dynamic> ExecDynamicStoredProcedure(string spName,
-            Dapperism.Entities.DynamicParameters dynamicParams, IDbTransaction transaction = null)
+            DynamicParameters dynamicParams, IDbTransaction transaction = null)
         {
             using (DbConnection)
             {
@@ -940,7 +941,7 @@ namespace Dapperism.DataAccess
         }
 
 
-        public IEnumerable<TEntity> GetByFilter(FilterQuery<TEntity> query, IDbTransaction transaction = null)
+        public IEnumerable<TEntity> GetByFilter(Query.QueryExpression<TEntity> query, IDbTransaction transaction = null)
         {
             using (DbConnection)
             {

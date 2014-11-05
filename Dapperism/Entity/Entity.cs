@@ -1,6 +1,8 @@
 ﻿using Microsoft.Practices.EnterpriseLibrary.Validation;
+using ValidationResult = Dapperism.Validation.ValidationResult;
+using ValidationResults = Dapperism.Validation.ValidationResults;
 
-namespace Dapperism.Entities
+namespace Dapperism.Entity
 {
     public class Entity<TEntity> : IEntity
         where TEntity : class , new()

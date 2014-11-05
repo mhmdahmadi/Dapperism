@@ -2,15 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Dapperism.Entities
+namespace Dapperism.Validation
 {
-
-    public class ValidationResult
-    {
-        public string Key { get; set; }
-        public string Message { get; set; }
-    }
-
     public class ValidationResults : IEnumerable<ValidationResult>
     {
         private readonly List<ValidationResult> _validationResults;

@@ -3,7 +3,6 @@ using System.Diagnostics;
 using Dapperism.DataAccess;
 using Dapperism.Enums;
 using Dapperism.Query;
-using Dapperism.Utilities;
 
 namespace Dapperism.Console
 {
@@ -18,7 +17,7 @@ namespace Dapperism.Console
             var rep = new Repository<Order>();
             var st11 = new Stopwatch();
             st11.Start();
-            var query = new FilterQuery<Order>()             
+            var query = new QueryExpression<Order>()             
                 .Select();
             var aaa = rep.GetByFilter(query);
             st11.Stop();

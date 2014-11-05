@@ -1,9 +1,8 @@
 using System;
 using Dapperism.Attributes;
-using Dapperism.Entities;
+using Dapperism.Entity;
 using Dapperism.Enums;
 using Dapperism.Extensions.Persian;
-using Dapperism.Utilities;
 
 namespace Dapperism.Console
 {

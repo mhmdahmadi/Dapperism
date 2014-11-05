@@ -1,4 +1,6 @@
-﻿namespace Dapperism.Entities
+﻿using Dapperism.Validation;
+
+namespace Dapperism.Entity
 {
     public interface IEntity
     {

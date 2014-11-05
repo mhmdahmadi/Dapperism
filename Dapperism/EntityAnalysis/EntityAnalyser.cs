@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using Dapperism.Entity;
 using Dapperism.Extensions.Persian;
 using Dapperism.Settings;
 
-namespace Dapperism.Entities
+namespace Dapperism.EntityAnalysis
 {
     internal static class EntityAnalyser<TEntity>
          where TEntity : class ,IEntity, new()

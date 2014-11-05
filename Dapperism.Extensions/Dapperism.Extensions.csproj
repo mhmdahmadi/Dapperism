@@ -49,6 +49,7 @@
     <Compile Include="Cryptography\RijndaelCrypto.cs" />
     <Compile Include="Cryptography\TripleDesCrypto.cs" />
     <Compile Include="Extensions\DataTableExt.cs" />
+    <Compile Include="Extensions\DateTimeExt.cs" />
     <Compile Include="Extensions\EnumExt.cs" />
     <Compile Include="Extensions\GeneralExt.cs" />
     <Compile Include="Extensions\LambdaExt.cs" />
@@ -56,6 +57,7 @@
     <Compile Include="Extensions\TimerExt.cs" />
     <Compile Include="Extensions\TimeSpanExt.cs" />
     <Compile Include="Persian\HumanReadableInteger.cs" />
+    <Compile Include="Persian\PersianDateTimeExt.cs" />
     <Compile Include="WebForms\PageExt.cs" />
     <Compile Include="Utilities\ReflectionManager.cs" />
     <Compile Include="Extensions\TypeMapperExt.cs" />

@@ -1,6 +1,6 @@
 namespace Dapperism.Enums
 {
-    public enum FilterOperation
+    public enum ConditionType
     {
         Equal,
         NotEqual,
